@@ -8,7 +8,7 @@
 
 NeuroVision-2028 is a research platform under development for reproducible brain MRI segmentation experiments, model benchmarking, uncertainty and explainability studies, and longitudinal analysis prototypes. Its planned outputs include quantitative measurements, interactive 2D and 3D views, and structured reports served through an API and web interface.
 
-The current package defines the pipeline interfaces and provides a CLI that lists the reference stages. [Architecture](docs/development/ARCHITECTURE.md) · [Phase status](docs/development/PHASE_STATUS.md) · [Changelog](CHANGELOG.md)
+The current package defines the pipeline interfaces and provides a CLI that lists the reference stages. [Architecture](docs/development/ARCHITECTURE.md) · [Capability roadmap](docs/development/CAPABILITIES.md) · [Phase status](docs/development/PHASE_STATUS.md) · [Changelog](CHANGELOG.md)
 
 ## Setup
 

@@ -1,0 +1,50 @@
+# Capability roadmap and technology choices
+
+> Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
+
+**Available today:** the stage catalog, component protocol, run context, and CLI. The matrix below describes planned work. A research experiment earns an **Experimental** label only when it can run end to end with documented inputs, constraints, and validation results. An interface without a runnable implementation is a **Stub**. The current CLI displays stage names rather than a list of enabled features.
+
+| Capability | Status | Boundary and evidence required before enabling |
+| --- | --- | --- |
+| NIfTI MRI and T1, T1ce, T2, FLAIR | Planned first | Accept explicitly labeled inputs, validate dimensions, datatype, finite intensities and physical geometry, and test malformed and oversized files. Record which sequences the model requires and reject missing or duplicate required channels. |
+| Multimodal MRI | Planned | Specify channel order and reference grid in a model manifest. Test alignment and transform round trips with synthetic volumes. |
+| DICOM ingestion | Planned, privacy gated | Isolate uploads and decoding. Resolve supported series and transfer syntaxes explicitly. Review metadata, overlays, burned-in text and recognizable anatomy before releasing data downstream. |
+| Skull stripping, bias-field correction, normalization, resampling, registration and automatic QC | Planned | Make each operation configurable. Record transform direction, interpolation and reference grid. Test with known synthetic transforms, separate intensity and label interpolation, and block processing on failed QC. |
+| 2D, 3D and multi-class segmentation for anatomy and lesion or tumor experiments | Planned | Keep anatomy and lesion label schemas distinct. Compare a small 2D U-Net and a 3D baseline under the same subject-level split, using per-class overlap and surface metrics with documented empty-mask handling. |
+| Ensemble inference, uncertainty, calibration and explainability | Planned research experiments | Combine only predictions with compatible labels and grids. Report the uncertainty method, assess calibration on held-out subjects, and test attributions against model or input perturbations. |
+| Volumetry, hemisphere analysis and atlas mapping | Planned | Calculate physical volumes from validated geometry, preserve units and atlas versions, and verify left/right with asymmetric phantoms. Require QC before reporting measurements derived from an atlas transform. |
+| Longitudinal comparison | Planned research experiment | Use controlled study-local linkage and relative time points. Verify within-subject alignment and report acquisition or pipeline changes that could affect comparisons. |
+| 2D viewer and 3D visualization | Planned | Verify slice orientation, overlay alignment and label identity before adding surfaces. Record any mesh simplification used for display. |
+| Reproducible pipelines, experiment tracking and model registry | Planned | Record code revision, split manifest, parameters, seed, artifact hashes and software versions. Resolve models by immutable version or digest with a declared modality and label contract. |
+| REST API, asynchronous inference and GPU inference | Planned | Separate HTTP requests from long jobs. Test authorization, bounded uploads, duplicate submissions, retries, cancellation, worker failure and device selection. Record actual device and precision in run metadata. |
+| Containers, Kubernetes and observability | Planned | Verify a local container build and smoke test before orchestration. Test readiness, worker resource limits, telemetry redaction, and end-to-end operation before claiming deployment support. |
+
+## Technology choices by layer
+
+Dependencies are added in the phase that exercises them. Keep the core stage protocol independent of imaging, model, database and deployment libraries.
+
+| Layer | Preferred technology and adoption trigger |
+| --- | --- |
+| Imaging | Use NiBabel and NumPy for NIfTI and volume arrays. Adopt SimpleITK when implementing registration, resampling or bias correction. Consider pydicom for inspecting DICOM metadata when the isolated ingestion path is ready. Add TorchIO for a demonstrated patch sampling or augmentation need and SciPy or scikit-image for operations that require them. |
+| Models | Use PyTorch for training and inference and MONAI for model and transform components. Benchmark a 2D U-Net and a 3D U-Net before testing SegResNet, UNETR, Swin UNETR or Attention U-Net. Promote a candidate based on comparable accuracy, runtime and memory measurements. Consider scikit-learn when a calibration or evaluation method needs it. |
+| Backend and persistence | Use FastAPI and Pydantic for versioned request, job and result schemas. Add SQLAlchemy and PostgreSQL when durable job and provenance metadata are needed. Keep volume bytes in a restricted artifact store and keep metadata references opaque. |
+| Jobs and GPU | Start with a single worker contract and persisted job state. Evaluate Redis with RQ or Celery once durable long-running jobs require a broker. Pass artifact IDs through the queue. Give GPU workers explicit memory and concurrency limits. |
+| Web | Use React and TypeScript for a responsive research workspace. Consider Cornerstone for orientation-aware slice views and Three.js for mesh rendering when the 3D workflow is ready. Add Next.js only if server rendering or its routing model solves a documented need. |
+| Experiments | Begin with a versioned run manifest and a model registry interface. Adopt MLflow when shared tracking and model promotion are required. Consider DVC for manifests or approved datasets with a controlled remote. |
+| Delivery | Use GitHub Actions for checks and image builds. Add Docker for reproducible API and worker environments, then Compose when local services need coordination. Consider Kubernetes and Helm for multi-worker deployments and Terraform when infrastructure provisioning needs repeatable configuration. AWS remains an optional target. |
+| Observability | Start with structured logs and correlation IDs. Add Prometheus-compatible job, latency and GPU metrics when services run persistently. Use Grafana dashboards for operational views and consider OpenTelemetry when traces must cross API and worker boundaries. |
+| Testing and security | Introduce pytest as imaging fixtures and API integrations grow. Add frontend component tests and browser tests when the viewer exists. Run secret and dependency scans in CI once it is configured. Keep test fixtures synthetic. |
+
+## Boundaries to preserve
+
+- **Geometry.** Carry voxel-to-world affine, units, reference space and transform history through each imaging artifact. Specify the canonical world convention and test adapters at RAS/LPS boundaries. [NiBabel coordinate systems and affines](https://nipy.org/nibabel/coordinate_systems.html)
+- **Privacy.** Bound input bytes and decoded size. Use server-generated identifiers, restricted storage, explicit retention, and access-controlled artifact delivery. Exclude filenames, headers, pixel data and identifiers from logs, metrics, traces, reports and experiment trackers. Define a DICOM profile and test attribute, pixel and recognizable-feature safeguards independently before enabling ingestion. [DICOM PS3.15 Annex E confidentiality options](https://dicom.nema.org/medical/dicom/current/output/chtml/part15/sect_e.3.html)
+- **Reproducibility.** Freeze dataset splits by subject and keep related scans together. Record model weights by hash, software versions, seed and relevant hardware. Report the dataset, task and evaluation assumptions beside metrics.
+- **Job and artifact ownership.** Scope access to the submitting workspace. Use idempotent job submission and publish results only after successful artifact creation. Keep retries bounded and distinguish failed, cancelled and successful jobs.
+
+## Suggested implementation order
+
+1. Implement bounded local NIfTI loading and geometry checks against synthetic volumes.
+2. Add preprocessing and QC, then baseline segmentation and reproducible evaluation.
+3. Add quantification, research experiments and report generation against validated artifacts.
+4. Add the API, worker and viewer. Introduce deployment and observability tools as each service needs them. Treat DICOM ingestion as a separate privacy gate before accepting DICOM uploads.
