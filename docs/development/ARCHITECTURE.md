@@ -2,6 +2,8 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
+The [capability roadmap](CAPABILITIES.md) records the proposed stack and the validation required before enabling each feature.
+
 The reference flow starts with an MRI volume and ends with a structured research report. The order below describes the workflow. Some stages also consume earlier artifacts, such as explainability consuming both the prepared image and a model prediction. Benchmarking can run multiple segmentation components against the same prepared inputs.
 
 | Stage | Planned responsibility |

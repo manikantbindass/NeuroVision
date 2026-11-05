@@ -5,5 +5,6 @@
 | Phase | Implementation status | Validation |
 | --- | --- | --- |
 | Project vision and pipeline architecture | Stage catalog, typed component interface, experiment context, CLI, architecture notes, and animated README assets | Unit tests cover component substitution, reference order, and notice visibility through the CLI. |
+| Advanced capabilities and technology direction | [Capability roadmap](CAPABILITIES.md) maps proposed features to validation gates and dependency choices | Documentation review and existing CLI regression checks. |
 | MRI processing, models, and application | Planned for later phases | Validation will be defined with each implementation. |
 | Final PDF and PowerPoint | Planned after implementation phases are merged | Check the artifacts against the merged project. |
