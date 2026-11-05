@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 180" role="img" aria-labelledby="title">
+  <title id="title">NeuroVision-2028</title>
+  <rect width="960" height="180" rx="16" fill="#0a1527"/>
+  <g fill="none" stroke="#58dce6" stroke-width="2">
+    <ellipse cx="112" cy="90" rx="64" ry="60"/>
+    <ellipse cx="112" cy="90" rx="48" ry="44" opacity=".65"/>
+    <ellipse cx="112" cy="90" rx="26" ry="29" opacity=".45"/>
+    <path d="M112 30v120M48 90h128" opacity=".3"/>
+    <path d="M55 90h114" stroke-width="3">
+      <animateTransform attributeName="transform" type="translate" values="0 -27;0 27;0 -27" dur="8s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  <g font-family="system-ui, sans-serif">
+    <text x="210" y="93" fill="#f0f8ff" font-size="44" font-weight="700">NeuroVision-2028</text>
+    <text x="212" y="127" fill="#86c9d7" font-size="21">Brain MRI segmentation and mapping research</text>
+  </g>
+</svg>
