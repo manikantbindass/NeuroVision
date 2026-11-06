@@ -22,6 +22,8 @@ NeuroTimeline compares regional volumes and registered segmentation masks across
 
 The FastAPI service exposes authenticated MRI uploads, queued research jobs, segmentation exports, and OpenAPI documentation. [Backend setup and API guide](docs/api/README.md)
 
+The React research workspace adds synchronized MRI slices, segmentation and uncertainty overlays, a sampled 3D preview, and a guided synthetic case. Start it with `npm ci --prefix apps/web` and `npm run dev --prefix apps/web`. [Workspace setup and connected workflows](docs/development/WEB_WORKSPACE.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup

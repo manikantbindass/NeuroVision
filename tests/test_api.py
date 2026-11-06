@@ -81,6 +81,13 @@ class BackendTests(unittest.TestCase):
         with TestClient(create_app(authenticator=_auth())) as client:
             signal = np.linspace(0, 1, 64, dtype=np.float32).reshape(4, 4, 4)
             scan_id = self._upload(client, _nifti(signal))
+            volume_path = f"{PREFIX}/scans/{scan_id}/volume.nii"
+            self.assertEqual(client.get(volume_path, headers=OTHER).status_code, 404)
+            exported = client.get(volume_path, headers=OWNER)
+            self.assertEqual(exported.status_code, 200)
+            np.testing.assert_allclose(
+                nib.Nifti2Image.from_bytes(exported.content).get_fdata(), signal
+            )
             truth = self._upload(
                 client, _nifti((signal > 0.5).astype(np.uint16)), "labels"
             )
@@ -97,6 +104,13 @@ class BackendTests(unittest.TestCase):
                 client, "preprocess", {"scan_id": scan_id, "normalization": "none"}
             )
             self.assertTrue(self._result(client, preprocessing)["usable"])
+            prepared = client.get(
+                f"{PREFIX}/preprocess/{preprocessing}/volume.nii", headers=OWNER
+            )
+            self.assertEqual(prepared.status_code, 200)
+            np.testing.assert_allclose(
+                nib.Nifti2Image.from_bytes(prepared.content).get_fdata(), signal
+            )
 
             model_response = client.get(f"{PREFIX}/models", headers=OWNER)
             self.assertTrue(model_response.json()["models"][0]["synthetic"])

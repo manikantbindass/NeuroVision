@@ -5,7 +5,7 @@
 | Location | Responsibility |
 | --- | --- |
 | `apps/api` | FastAPI routes, request boundaries, service orchestration, and local adapters. |
-| `apps/web` | Reserved for the research viewer. |
+| `apps/web` | React and TypeScript research workspace, linked MRI viewer, API client, and Playwright tests. |
 | `neurovision/core` | Stage contracts shared by all future pipeline components. `neurovision.pipeline` remains a public import path. |
 | `neurovision/imaging`, `neurovision/datasets` | Local MRI readers, canonical volume contracts, and dataset manifests or adapters. |
 | `neurovision/preprocessing` | Configurable transforms, provenance and caching, registration adapters, QC reports, and slice montages. |

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a responsive React MRI research workspace with linked planes, segmentation and uncertainty overlays, before/after views, a sampled 3D preview, and a guided synthetic case.
+- Connect the web workspace to authenticated research jobs and add owner-scoped canonical NIfTI image exports.
+
 - Add a versioned FastAPI service for MRI uploads, preprocessing, inference, segmentation exports, metrics, atlas maps, uncertainty, reports, and asynchronous jobs.
 - Add request IDs, sanitized errors, structured logs, upload quotas, and replaceable authentication, rate limiting, storage, and queue adapters.
 
