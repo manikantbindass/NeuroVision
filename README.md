@@ -10,11 +10,13 @@ NeuroVision-2028 is a research platform under development for reproducible brain
 
 The foundation provides shared pipeline contracts, validated runtime settings, structured logs, reproducible Python random streams, and a CLI that lists the reference stages. The optional MRI engine loads NIfTI and reviewed DICOM locally and validates dataset manifests. [Architecture](docs/development/ARCHITECTURE.md) · [Phase status](docs/development/PHASE_STATUS.md) · [Changelog](CHANGELOG.md)
 
-The preprocessing engine adds configurable spatial and intensity transforms, per-step provenance, and QC reports and montages. The next phases cover reproducible segmentation benchmarks, measurements and research reports, then the API, worker, and viewer. [Preprocessing guide](docs/development/PREPROCESSING.md) · [Capability roadmap](docs/development/CAPABILITIES.md)
+The preprocessing engine adds configurable transforms, provenance, and QC. Trainable 2D and 3D U-Net baselines include reproducible synthetic examples. The next phases cover benchmarking, measurements and research reports, then the API, worker, and viewer. [Preprocessing guide](docs/development/PREPROCESSING.md) · [Baseline training guide](docs/development/BASELINE_TRAINING.md) · [Capability roadmap](docs/development/CAPABILITIES.md)
+
+**MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup
 
-You need Git, Python 3.11 or later, and pip. The setup below installs the optional libraries for the synthetic MRI and preprocessing tests. Include `bias` in the extras for the N4 test. For the stage catalog CLI alone, install `.`.
+You need Git, Python 3.11 or later, and pip. The setup below installs the optional libraries and CPU PyTorch for the synthetic tests and baseline examples. Include `bias` in the extras for the N4 test. For the stage catalog CLI alone, install `.`.
 
 ### Bash terminal
 
@@ -22,7 +24,8 @@ You need Git, Python 3.11 or later, and pip. The setup below installs the option
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 python3 -m venv .venv
-.venv/bin/python -m pip install ".[imaging,preprocessing]"
+.venv/bin/python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+.venv/bin/python -m pip install ".[imaging,preprocessing,training]"
 .venv/bin/python -m neurovision
 .venv/bin/python -m unittest discover -s tests -v
 ```
@@ -33,7 +36,8 @@ python3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 Set-Location NeuroVision
 py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install ".[imaging,preprocessing]"
+.\.venv\Scripts\python.exe -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+.\.venv\Scripts\python.exe -m pip install ".[imaging,preprocessing,training]"
 .\.venv\Scripts\python.exe -m neurovision
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
@@ -44,7 +48,8 @@ py -3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install ".[imaging,preprocessing]"
+.venv\Scripts\python.exe -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+.venv\Scripts\python.exe -m pip install ".[imaging,preprocessing,training]"
 .venv\Scripts\python.exe -m neurovision
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 ```

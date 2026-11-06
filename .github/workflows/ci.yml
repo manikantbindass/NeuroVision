@@ -19,7 +19,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install ".[dev,imaging,preprocessing,bias]"
+      - run: python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install ".[dev,imaging,preprocessing,bias,training]"
       - run: python -m ruff check neurovision tests
       - run: python -m ruff format --check neurovision tests
       - run: python -m mypy

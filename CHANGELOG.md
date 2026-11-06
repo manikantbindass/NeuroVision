@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add 2D and 3D U-Net baselines, configurable Dice and cross-entropy training, and reproducible synthetic experiment recipes.
+- Add epoch checkpoints, mixed precision, scheduling, early stopping, and per-class overlap and physical surface metrics.
+
 - Add reproducible preprocessing recipes, optional N4 bias correction, affine registration and brain-mask adapters, and bounded caching.
 - Record per-step provenance and generate configurable QC reports and visual slice montages.
 
