@@ -3,5 +3,8 @@ services:
     build:
       context: .
       dockerfile: deployment/docker/Dockerfile
+    environment:
+      NEUROVISION_SEED: "${NEUROVISION_SEED:-42}"
+      NEUROVISION_LOG_LEVEL: "${NEUROVISION_LOG_LEVEL:-WARNING}"
     read_only: true
     network_mode: none

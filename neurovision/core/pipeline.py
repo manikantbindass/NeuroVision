@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import StrEnum
+from random import Random
 from typing import Protocol, TypeVar
 
 RESEARCH_NOTICE = (
@@ -36,6 +37,10 @@ class RunContext:
 
     run_id: str
     seed: int
+
+    def rng(self) -> Random:
+        """Create a fresh deterministic Python random stream for this run."""
+        return Random(self.seed)
 
 
 StageInput = TypeVar("StageInput", contravariant=True)
