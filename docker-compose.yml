@@ -1,0 +1,7 @@
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile
+    read_only: true
+    network_mode: none
