@@ -4,7 +4,7 @@ PYTHON ?= python
 install:
 	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
-	$(PYTHON) -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test,pdf,report-test]"
+	$(PYTHON) -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test,pdf,report-test,mlops]"
 
 hooks:
 	$(PYTHON) -m pre_commit install

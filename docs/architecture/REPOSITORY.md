@@ -15,6 +15,7 @@
 | `neurovision/explainability`, `mapping` | Fixed-target segmentation sensitivity, registered atlas overlaps, and local comparison reports. |
 | `neurovision/longitudinal` | Registered mask comparisons, native regional changes, and the NeuroTimeline viewer. |
 | `neurovision/reporting` | Structured report snapshots, reproducibility fingerprints, JSON/HTML/PDF exporters, and a synthetic example. |
+| `neurovision/mlops` | Dataset and configuration identity, training lifecycle artifacts, MLflow tracking, and immutable trained-model registry adapters. |
 | `configs`, `scripts`, `tests`, `notebooks`, `examples` | Configuration, developer utilities, tests, and synthetic examples. |
 | `docs/` | Architecture, research, API, deployment, development, presentations, and reports. |
 | `assets/` | README animations and reserved diagrams, screenshots, and branding. |

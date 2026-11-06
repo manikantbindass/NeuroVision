@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "model": {
     "architecture": "attention_unet", "spatial_dims": 3, "in_channels": 1, "num_classes": 2,
     "parameters": {"channels": [4, 8, 16], "strides": [2, 2]}

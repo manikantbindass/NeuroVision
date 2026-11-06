@@ -1,6 +1,7 @@
 """Unified training and inference checkpoint operations."""
 
 import hashlib
+import json
 from dataclasses import asdict
 from importlib.metadata import version
 from pathlib import Path
@@ -53,12 +54,45 @@ class CheckpointManager:
         return state
 
     @staticmethod
-    def export(path: Path, model: BaseSegmentationModel) -> str:
+    def export(
+        path: Path,
+        model: BaseSegmentationModel,
+        *,
+        provenance: dict[str, Any] | None = None,
+    ) -> str:
         path.parent.mkdir(parents=True, exist_ok=True)
         config = model.model_config
         software = {"torch": str(torch.__version__)}
         if config.architecture != "unet":
             software["monai"] = version("monai")
+        from neurovision.mlops.provenance import environment_snapshot, git_snapshot
+        from neurovision.reporting.research import canonical_json
+
+        lifecycle = {
+            "architecture": asdict(config),
+            "hyperparameters": None,
+            "dataset_reference": None,
+            "preprocessing": None,
+            "metrics": None,
+            "commit": git_snapshot(Path(__file__).resolve().parents[2]),
+            "dependencies": environment_snapshot(),
+            "training_artifact": provenance,
+        }
+        if provenance is not None:
+            if provenance.get("architecture") != asdict(config):
+                raise TrainingError(
+                    "Export provenance differs from the model definition"
+                )
+            for field in (
+                "hyperparameters",
+                "dataset_reference",
+                "preprocessing",
+                "metrics",
+                "commit",
+                "dependencies",
+            ):
+                lifecycle[field] = provenance.get(field)
+        lifecycle = json.loads(canonical_json(lifecycle))
         save_checkpoint(
             path,
             {
@@ -66,6 +100,7 @@ class CheckpointManager:
                 "artifact": "segmentation_weights",
                 "model_definition": asdict(config),
                 "software": software,
+                "lifecycle": lifecycle,
                 "model": {
                     name: tensor.detach().cpu()
                     for name, tensor in model.state_dict().items()

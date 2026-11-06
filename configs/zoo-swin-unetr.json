@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "model": {
     "architecture": "swin_unetr", "spatial_dims": 3, "in_channels": 1, "num_classes": 2,
     "parameters": {"feature_size": 12, "depths": [1, 1, 1, 1],

@@ -16,6 +16,11 @@ dist/
 /datasets/
 /artifacts/
 /checkpoints/
+/mlruns/
+/mlflow.db
+.dvc/cache/
+.dvc/tmp/
+.dvc/config.local
 *.dcm
 *.dicom
 *.nii

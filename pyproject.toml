@@ -24,6 +24,8 @@ api = ["fastapi>=0.115,<1", "pydantic>=2.9,<3", "uvicorn>=0.34,<1"]
 api-test = ["httpx>=0.28,<1"]
 pdf = ["reportlab>=4.4,<5"]
 report-test = ["pypdf>=6,<7"]
+mlops = ["mlflow-skinny>=3.5,<4", "sqlalchemy>=2,<3", "alembic>=1.16,<2"]
+dvc = ["dvc>=3.63,<4"]
 
 [project.scripts]
 neurovision = "neurovision.__main__:main"
@@ -48,3 +50,8 @@ untyped_calls_exclude = ["nibabel", "SimpleITK", "torch", "monai", "reportlab"]
 [[tool.mypy.overrides]]
 module = ["nibabel", "nibabel.*", "scipy", "scipy.*", "SimpleITK", "SimpleITK.*", "reportlab", "reportlab.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["mlflow", "mlflow.*", "sqlalchemy", "sqlalchemy.*", "alembic", "alembic.*"]
+ignore_missing_imports = true
+follow_imports = "skip"
