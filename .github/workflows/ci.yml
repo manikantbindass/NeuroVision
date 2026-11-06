@@ -25,9 +25,9 @@ jobs:
           package-manager-cache: false
       - run: python -m pip install --upgrade pip
       - run: python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
-      - run: python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo]"
-      - run: python -m ruff check neurovision tests
-      - run: python -m ruff format --check neurovision tests
+      - run: python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test]"
+      - run: python -m ruff check neurovision apps tests
+      - run: python -m ruff format --check neurovision apps tests
       - run: python -m mypy
       - run: python -m pre_commit validate-config
       - run: python -m unittest discover -s tests -v

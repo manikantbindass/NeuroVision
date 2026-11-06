@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add a versioned FastAPI service for MRI uploads, preprocessing, inference, segmentation exports, metrics, atlas maps, uncertainty, reports, and asynchronous jobs.
+- Add request IDs, sanitized errors, structured logs, upload quotas, and replaceable authentication, rate limiting, storage, and queue adapters.
+
 - Add baseline-referenced longitudinal MRI mapping, native regional volume changes, shared-coverage difference maps, paired replicate spread, and the interactive NeuroTimeline viewer.
 
 - Add fixed-ROI gradient saliency and bounded patch occlusion for segmentation experiments.
