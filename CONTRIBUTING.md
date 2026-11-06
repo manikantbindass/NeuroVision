@@ -7,8 +7,9 @@ Read the [repository map](docs/architecture/REPOSITORY.md) and [phase status](do
 Follow the virtual environment setup in the [README](README.md) and activate the environment in your shell before installing or running Git hooks. Run these commands with that environment's Python:
 
 ```text
+python -m pip install --upgrade pip
 python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
-python -m pip install ".[dev,imaging,preprocessing,bias,training]"
+python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo]"
 python -m pre_commit install
 python -m pre_commit run --all-files
 python -m ruff check neurovision tests

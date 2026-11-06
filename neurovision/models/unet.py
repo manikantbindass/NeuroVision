@@ -5,6 +5,9 @@ from typing import Literal, cast
 
 from torch import Tensor, cat, nn
 
+from neurovision.models.base import BaseSegmentationModel, InputSpec
+from neurovision.models.config import ModelConfig
+
 SpatialDims = Literal[2, 3]
 
 
@@ -34,7 +37,7 @@ class UNetConfig:
         return 1 << (len(self.features) - 1)
 
 
-class UNet(nn.Module):
+class UNet(BaseSegmentationModel):
     """Padded double convolutions, pooling, transposed convolutions, and skip links."""
 
     def __init__(self, config: UNetConfig) -> None:
@@ -71,6 +74,28 @@ class UNet(nn.Module):
             block(2 * width, width) for width in reversed(widths[:-1])
         )
         self.head = conv(widths[0], config.num_classes, kernel_size=1)
+
+    @property
+    def input_spec(self) -> InputSpec:
+        config = self.config
+        return InputSpec(
+            config.spatial_dims,
+            config.in_channels,
+            config.num_classes,
+            config.downsampling_factor,
+            config.downsampling_factor,
+        )
+
+    @property
+    def model_config(self) -> ModelConfig:
+        config = self.config
+        return ModelConfig(
+            "unet",
+            config.spatial_dims,
+            config.in_channels,
+            config.num_classes,
+            {"features": list(config.features)},
+        )
 
     def forward(self, inputs: Tensor) -> Tensor:
         factor = self.config.downsampling_factor

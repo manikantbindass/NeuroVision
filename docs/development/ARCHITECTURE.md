@@ -61,3 +61,5 @@ The [local ingestion library](IMAGING.md) produces a canonical MRI volume after 
 The [preprocessing stage](PREPROCESSING.md) implements the shared component contract for one canonical MRI volume. Its ordered transforms return a processed volume, geometry and seed provenance, and a QC report. Case-level QC checks modality completeness before per-volume processing.
 
 The [baseline training module](BASELINE_TRAINING.md) consumes aligned volumes or slices and explicit labels. The training runner keeps validation separate, writes local checkpoints, and uses the evaluation module for overlap and physical surface metrics.
+
+The [model zoo](../research/MODEL_ZOO.md) extends the training path with an explicit factory and registry. Native and MONAI models share a tensor input contract and output same-grid logits. The checkpoint manager records the architecture definition for reconstruction, and the inference engine handles evaluation precision and optional sliding windows.

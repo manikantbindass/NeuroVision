@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Literal
 
 from neurovision.core.errors import ConfigurationError
+from neurovision.models.config import ModelConfig
 from neurovision.models.unet import UNetConfig
 from neurovision.training.losses import LossConfig
 
@@ -72,7 +73,7 @@ class TrainingConfig:
 
 @dataclass(frozen=True, slots=True)
 class ExperimentConfig:
-    model: UNetConfig
+    model: UNetConfig | ModelConfig
     loss: LossConfig = LossConfig()
     training: TrainingConfig = TrainingConfig()
     augmentation: AugmentationConfig = AugmentationConfig()
@@ -103,12 +104,14 @@ def load_experiment(path: Path) -> ExperimentConfig:
             raise ValueError("Invalid experiment configuration sections")
         model = dict(config["model"])
         training = dict(config.get("training", {}))
-        if "features" in model:
+        if "features" in model and "architecture" not in model:
             model["features"] = tuple(model["features"])
         if training.get("validation_spacing_mm") is not None:
             training["validation_spacing_mm"] = tuple(training["validation_spacing_mm"])
         return ExperimentConfig(
-            model=UNetConfig(**model),
+            model=ModelConfig(**model)
+            if "architecture" in model
+            else UNetConfig(**model),
             loss=LossConfig(**config.get("loss", {})),
             training=TrainingConfig(**training),
             augmentation=AugmentationConfig(**config.get("augmentation", {})),

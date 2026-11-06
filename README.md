@@ -12,6 +12,8 @@ The foundation provides shared pipeline contracts, validated runtime settings, s
 
 The preprocessing engine adds configurable transforms, provenance, and QC. Trainable 2D and 3D U-Net baselines include reproducible synthetic examples. The next phases cover benchmarking, measurements and research reports, then the API, worker, and viewer. [Preprocessing guide](docs/development/PREPROCESSING.md) · [Baseline training guide](docs/development/BASELINE_TRAINING.md) · [Capability roadmap](docs/development/CAPABILITIES.md)
 
+The optional model zoo integrates SegResNet, Attention U-Net, UNETR, and Swin UNETR with the training loop and a tensor inference engine. [Model zoo guide](docs/research/MODEL_ZOO.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup
@@ -24,6 +26,7 @@ You need Git, Python 3.11 or later, and pip. The setup below installs the option
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
 .venv/bin/python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
 .venv/bin/python -m pip install ".[imaging,preprocessing,training]"
 .venv/bin/python -m neurovision
@@ -36,6 +39,7 @@ python3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 Set-Location NeuroVision
 py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
 .\.venv\Scripts\python.exe -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
 .\.venv\Scripts\python.exe -m pip install ".[imaging,preprocessing,training]"
 .\.venv\Scripts\python.exe -m neurovision
@@ -48,6 +52,7 @@ py -3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 py -3 -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
 .venv\Scripts\python.exe -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
 .venv\Scripts\python.exe -m pip install ".[imaging,preprocessing,training]"
 .venv\Scripts\python.exe -m neurovision

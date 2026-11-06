@@ -8,6 +8,8 @@ import torch
 from torch import Tensor
 
 from neurovision.imaging.volume import Modality, MRIVolume
+from neurovision.models.config import ModelConfig
+from neurovision.models.factory import ModelFactory
 from neurovision.models.unet import UNetConfig
 from neurovision.preprocessing.contracts import same_grid
 from neurovision.training.checkpoints import TrainingError
@@ -25,7 +27,7 @@ def case_tensors(
     labels: MRIVolume,
     *,
     channels: tuple[Modality, ...],
-    model: UNetConfig,
+    model: UNetConfig | ModelConfig,
 ) -> TensorCase:
     """Build 2D axial samples or one 3D sample on a shared orthogonal RAS grid."""
     if (
@@ -64,11 +66,14 @@ def case_tensors(
     else:
         images, target = images[None], target[None]
         spacing = first.spacing_mm[::-1]
-    factor = model.downsampling_factor
-    if any(size < factor or size % factor for size in images.shape[2:]):
-        raise TrainingError(
-            "MRI spatial dimensions must be divisible by the U-Net pooling factor"
-        )
+    if isinstance(model, UNetConfig):
+        factor = model.downsampling_factor
+        if any(size < factor or size % factor for size in images.shape[2:]):
+            raise TrainingError(
+                "MRI spatial dimensions violate the U-Net pooling factor"
+            )
+    else:
+        ModelFactory().create(model).input_spec.validate(tuple(images.shape))
     return TensorCase(
         torch.from_numpy(np.ascontiguousarray(images)),
         torch.from_numpy(np.ascontiguousarray(target)),

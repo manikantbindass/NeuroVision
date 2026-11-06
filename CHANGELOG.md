@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Integrate MONAI SegResNet, Attention U-Net, UNETR, and Swin UNETR through a common model contract, factory, and architecture registry.
+- Add architecture-aware checkpoint reconstruction, tensor inference, parameter counts, and scoped forward profiling.
+
 - Add 2D and 3D U-Net baselines, configurable Dice and cross-entropy training, and reproducible synthetic experiment recipes.
 - Add epoch checkpoints, mixed precision, scheduling, early stopping, and per-class overlap and physical surface metrics.
 

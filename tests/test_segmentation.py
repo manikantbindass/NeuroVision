@@ -10,7 +10,11 @@ import torch
 from neurovision.evaluation.segmentation import segmentation_metrics
 from neurovision.imaging.volume import Modality, canonical_volume
 from neurovision.models.unet import UNet, UNetConfig
-from neurovision.training.checkpoints import TrainingError, load_checkpoint
+from neurovision.training.checkpoints import (
+    TrainingError,
+    load_checkpoint,
+    save_checkpoint,
+)
 from neurovision.training.config import (
     AugmentationConfig,
     ExperimentConfig,
@@ -152,6 +156,10 @@ class TrainingTests(unittest.TestCase):
             )
             short = replace(cfg, training=replace(cfg.training, epochs=1))
             fit(train, valid, short, output=root / "resume", data_id="synthetic")
+            legacy = load_checkpoint(root / "resume" / "last.pt")
+            legacy["run"].pop("model_definition")
+            legacy["run"].pop("monai")
+            save_checkpoint(root / "resume" / "last.pt", legacy)
             with self.assertRaisesRegex(TrainingError, "configuration differs"):
                 fit(
                     train,
@@ -193,6 +201,7 @@ class TrainingTests(unittest.TestCase):
         train = synthetic_dataset(config.model, samples=2, seed=3)
         valid = synthetic_dataset(config.model, samples=2, seed=4)
         torch.manual_seed(config.training.seed)
+        assert isinstance(config.model, UNetConfig)
         initial = UNet(config.model).state_dict()
         with tempfile.TemporaryDirectory() as temp:
             out = Path(temp)
