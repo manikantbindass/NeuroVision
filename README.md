@@ -24,6 +24,8 @@ The FastAPI service exposes authenticated MRI uploads, queued research jobs, seg
 
 The React research workspace adds synchronized MRI slices, segmentation and uncertainty overlays, a sampled 3D preview, and a guided synthetic case. Start it with `npm ci --prefix apps/web` and `npm run dev --prefix apps/web`. [Workspace setup and connected workflows](docs/development/WEB_WORKSPACE.md)
 
+Research reports capture scan and preprocessing metadata, QC, model versions, class volumes, uncertainty, selected evaluation results, and reproducibility fingerprints. Export JSON, HTML, or optional PDF from the Reports page. [Reporting guide](docs/research/REPORTING.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup

@@ -67,6 +67,10 @@ export type Report = {
   id: string;
   notice: string;
   schema_version: number;
+  title?: string;
+  created_at?: string;
+  sections?: Record<string, unknown>;
+  content_sha256?: string;
   sources: { kind: string; summary: Record<string, unknown> }[];
 };
 type Segmentation = {
@@ -78,6 +82,12 @@ type Segmentation = {
 
 export class Api {
   constructor(private readonly token: string) {}
+
+  async exportReport(id: string, format: string): Promise<Blob> {
+    return (
+      await this.request(`/api/v1/reports/${id}/export.${format}`)
+    ).blob();
+  }
 
   private async request(path: string, init: RequestInit = {}) {
     if (!path.startsWith("/api/v1/"))

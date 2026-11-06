@@ -26,7 +26,8 @@ Interactive docs are at `/docs`, with the schema at `/api/v1/openapi.json`. Heal
 | `POST /metrics`, `GET /metrics/{id}` | Compare a segmentation to an uploaded label map on the same grid. Physical distances require explicit millimetres and orthogonal axes. |
 | `POST /maps`, `GET /maps/{id}` | Run NeuroMap with an authorized local label atlas uploaded through `/scans`, a region table, and a reviewed segmentation-to-atlas RAS+ transform. Returns region statistics. |
 | `GET /uncertainty`, `GET /uncertainty/{id}`, `GET /uncertainty/{id}/{confidence\|entropy}.nii` | Single-prediction maximum probability and normalized entropy summaries and exports. These values are uncalibrated. |
-| `POST /reports`, `GET /reports/{id}` | Structured JSON snapshot of up to 12 source artifacts. Snapshots retain metadata until separately removed. |
+| `POST /reports`, `GET /reports/{id}` | Structured research report from up to 12 selected artifacts and their available dependencies |
+| `GET /reports/{id}/exports`, `GET /reports/{id}/export.{json\|html\|pdf}` | Available formats and integrity-checked report downloads. PDF requires the optional `pdf` extra. [Reporting guide](../research/REPORTING.md) |
 | `GET /jobs`, `GET/DELETE /jobs/{id}` | List and poll owned jobs. Deleting a terminal job removes its primary result. |
 
 ### Upload and run an experiment

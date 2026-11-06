@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add schema-versioned AI-Assisted Research Segmentation Reports with input, model, QC, volume, uncertainty, evaluation, and reproducibility metadata.
+- Add integrity-checked JSON, escaped HTML, optional PDF exports, and report download controls in the web workspace.
+
 - Add a responsive React MRI research workspace with linked planes, segmentation and uncertainty overlays, before/after views, a sampled 3D preview, and a guided synthetic case.
 - Connect the web workspace to authenticated research jobs and add owner-scoped canonical NIfTI image exports.
 

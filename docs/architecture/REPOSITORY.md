@@ -14,7 +14,7 @@
 | `neurovision/uncertainty` | Weighted probability statistics, confidence maps, and a local interactive viewer. |
 | `neurovision/explainability`, `mapping` | Fixed-target segmentation sensitivity, registered atlas overlaps, and local comparison reports. |
 | `neurovision/longitudinal` | Registered mask comparisons, native regional changes, and the NeuroTimeline viewer. |
-| `neurovision/reporting` | Reserved for structured report generation. |
+| `neurovision/reporting` | Structured report snapshots, reproducibility fingerprints, JSON/HTML/PDF exporters, and a synthetic example. |
 | `configs`, `scripts`, `tests`, `notebooks`, `examples` | Configuration, developer utilities, tests, and synthetic examples. |
 | `docs/` | Architecture, research, API, deployment, development, presentations, and reports. |
 | `assets/` | README animations and reserved diagrams, screenshots, and branding. |

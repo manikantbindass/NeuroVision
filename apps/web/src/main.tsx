@@ -573,6 +573,7 @@ function App() {
           report={report}
           sources={sources}
           busy={!!busy}
+          api={api}
           run={() =>
             api &&
             run(

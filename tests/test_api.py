@@ -196,10 +196,34 @@ class BackendTests(unittest.TestCase):
             result = client.get(
                 str(self._wait(client, report_id)["result_url"]), headers=OWNER
             )
+            document = result.json()
             self.assertEqual(
-                [source["kind"] for source in result.json()["sources"]],
+                [source["kind"] for source in document["sources"][:2]],
                 ["maps", "metrics"],
             )
+            self.assertEqual(
+                document["title"], "AI-Assisted Research Segmentation Report"
+            )
+            self.assertEqual(document["schema_version"], 2)
+            self.assertTrue(document["sections"]["volumetric_measurements"])
+            self.assertTrue(document["sections"]["preprocessing"])
+            self.assertTrue(document["sections"]["evaluation_metrics"])
+            self.assertEqual(len(document["content_sha256"]), 64)
+            export_path = f"{PREFIX}/reports/{report_id}/export.html"
+            html = client.get(export_path, headers=OWNER)
+            self.assertEqual(html.status_code, 200)
+            self.assertIn("AI-Assisted Research Segmentation Report", html.text)
+            self.assertEqual(client.get(export_path, headers=OTHER).status_code, 404)
+            formats = client.get(
+                f"{PREFIX}/reports/{report_id}/exports", headers=OWNER
+            ).json()["formats"]
+            self.assertIn("html", formats)
+            if "pdf" in formats:
+                pdf = client.get(
+                    f"{PREFIX}/reports/{report_id}/export.pdf", headers=OWNER
+                )
+                self.assertEqual(pdf.status_code, 200)
+                self.assertTrue(pdf.content.startswith(b"%PDF"))
             self.assertEqual(
                 client.delete(f"{PREFIX}/jobs/{prediction}", headers=OWNER).status_code,
                 204,
@@ -210,6 +234,11 @@ class BackendTests(unittest.TestCase):
                 ).status_code,
                 404,
             )
+            persisted = client.get(
+                f"{PREFIX}/reports/{report_id}/export.json", headers=OWNER
+            )
+            self.assertEqual(persisted.status_code, 200)
+            self.assertEqual(persisted.json(), document)
 
     def test_request_boundaries_and_sanitized_errors(self) -> None:
         logger = logging.getLogger("neurovision.api.test")
