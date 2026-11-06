@@ -8,7 +8,8 @@
 | `neurovision/core` | Stage contracts shared by all future pipeline components. `neurovision.pipeline` remains a public import path. |
 | `neurovision/imaging`, `neurovision/datasets` | Local MRI readers, canonical volume contracts, and dataset manifests or adapters. |
 | `neurovision/preprocessing` | Configurable transforms, provenance and caching, registration adapters, QC reports, and slice montages. |
-| `neurovision/models`, `training`, `inference`, `evaluation` | Reserved for model definitions, fitting, prediction, and benchmarking. |
+| `neurovision/models`, `neurovision/training`, `neurovision/evaluation` | 2D and 3D U-Net baselines, reproducible training, and segmentation metrics. |
+| `neurovision/inference` | Reserved for inference and deployment adapters. |
 | `neurovision/uncertainty`, `explainability`, `mapping`, `longitudinal`, `reporting` | Reserved for research analysis and report generation. |
 | `configs`, `scripts`, `tests`, `notebooks`, `examples` | Configuration, developer utilities, tests, and synthetic examples. |
 | `docs/` | Architecture, research, API, deployment, development, presentations, and reports. |

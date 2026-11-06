@@ -1,0 +1,6 @@
+{
+  "model": {"spatial_dims": 3, "in_channels": 1, "num_classes": 2, "features": [4, 8]},
+  "loss": {"dice_weight": 1.0, "cross_entropy_weight": 1.0},
+  "training": {"seed": 42, "epochs": 2, "batch_size": 2, "validation_spacing_mm": [1, 1, 1]},
+  "augmentation": {"flip_probability": 0.5, "noise_std": 0.02}
+}

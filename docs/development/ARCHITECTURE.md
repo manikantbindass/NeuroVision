@@ -59,3 +59,5 @@ Future stage implementations should define concrete artifact contracts before jo
 The [local ingestion library](IMAGING.md) produces a canonical MRI volume after validation and orientation handling. Its DICOM boundary requires trusted prior review of identifiers in filenames, metadata and pixels. Tests and demos use synthetic data. The stage catalog CLI has no image input.
 
 The [preprocessing stage](PREPROCESSING.md) implements the shared component contract for one canonical MRI volume. Its ordered transforms return a processed volume, geometry and seed provenance, and a QC report. Case-level QC checks modality completeness before per-volume processing.
+
+The [baseline training module](BASELINE_TRAINING.md) consumes aligned volumes or slices and explicit labels. The training runner keeps validation separate, writes local checkpoints, and uses the evaluation module for overlap and physical surface metrics.

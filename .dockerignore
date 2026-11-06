@@ -12,6 +12,12 @@
 !neurovision/datasets/*.py
 !neurovision/preprocessing/
 !neurovision/preprocessing/*.py
+!neurovision/models/
+!neurovision/models/*.py
+!neurovision/training/
+!neurovision/training/*.py
+!neurovision/evaluation/
+!neurovision/evaluation/*.py
 !deployment/
 !deployment/docker/
 !deployment/docker/Dockerfile
