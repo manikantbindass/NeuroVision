@@ -14,6 +14,8 @@ The preprocessing engine adds configurable transforms, provenance, and QC. Train
 
 The optional model zoo integrates SegResNet, Attention U-Net, UNETR, and Swin UNETR with the training loop and a tensor inference engine. [Model zoo guide](docs/research/MODEL_ZOO.md)
 
+Ensemble experiments add weighted probability averaging, reversible flip TTA, model disagreement, predictive entropy, variance, and supported MC dropout sampling. The local NeuroConfidence viewer distinguishes threshold-based high-confidence predictions from low-confidence or uncertain predictions. [Ensemble and confidence guide](docs/research/ENSEMBLE_INTELLIGENCE.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup

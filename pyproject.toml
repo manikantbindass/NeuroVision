@@ -28,6 +28,9 @@ neurovision = "neurovision.__main__:main"
 include = ["neurovision", "neurovision.*"]
 namespaces = false
 
+[tool.setuptools.package-data]
+"neurovision.uncertainty" = ["*.html"]
+
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 

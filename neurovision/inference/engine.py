@@ -1,12 +1,12 @@
 """Bounded full-grid and optional sliding-window segmentation inference."""
 
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from typing import Literal
 
 import torch
-from torch import Tensor
+from torch import Tensor, nn
 
 from neurovision.core.errors import PipelineError
 from neurovision.models.base import BaseSegmentationModel
@@ -17,15 +17,40 @@ class InferenceError(PipelineError):
 
 
 @contextmanager
-def evaluation_mode(model: BaseSegmentationModel) -> Iterator[None]:
+def evaluation_mode(
+    model: BaseSegmentationModel,
+    *,
+    mc_dropout: bool = False,
+) -> Iterator[None]:
     states = [(module, module.training) for module in model.modules()]
+    dropout = [
+        module
+        for module in model.modules()
+        if isinstance(
+            module,
+            (
+                nn.Dropout,
+                nn.Dropout1d,
+                nn.Dropout2d,
+                nn.Dropout3d,
+                nn.AlphaDropout,
+                nn.FeatureAlphaDropout,
+            ),
+        )
+        and 0 < module.p < 1
+    ]
+    if mc_dropout and not dropout:
+        raise InferenceError("MC dropout requires explicit active dropout modules")
     model.eval()
     try:
+        if mc_dropout:
+            for module in dropout:
+                module.train(True)
         with torch.inference_mode():
             yield
     finally:
-        for module, training in states:
-            module.training = training
+        for saved_module, saved_training in states:
+            saved_module.training = saved_training
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,8 +100,16 @@ class InferenceEngine:
         *,
         roi_size: tuple[int, ...] | None = None,
         overlap: float = 0.25,
+        mc_dropout: bool = False,
+        seed: int | None = None,
     ) -> Prediction:
         spec = self.model.input_spec
+        if mc_dropout and (type(seed) is not int or not 0 <= seed < 2**63):
+            raise InferenceError(
+                "MC dropout requires an explicit nonnegative 63-bit seed"
+            )
+        if not mc_dropout and seed is not None:
+            raise InferenceError("A sampling seed is valid only with MC dropout")
         if (
             inputs.ndim != spec.spatial_dims + 2
             or inputs.shape[1] != spec.in_channels
@@ -96,12 +129,29 @@ class InferenceEngine:
         else:
             spec.validate((1, spec.in_channels, *roi_size))
         dtype = torch.float16 if self.precision == "fp16" else torch.bfloat16
+        devices = (
+            []
+            if self.device.type == "cpu"
+            else [
+                torch.cuda.current_device()
+                if self.device.index is None
+                else self.device.index
+            ]
+        )
         with (
-            evaluation_mode(self.model),
+            torch.random.fork_rng(devices=devices) if mc_dropout else nullcontext(),
+            evaluation_mode(self.model, mc_dropout=mc_dropout),
             torch.autocast(
                 self.device.type, dtype=dtype, enabled=self.precision != "fp32"
             ),
         ):
+            if seed is not None:
+                torch.set_rng_state(
+                    torch.Generator(device="cpu").manual_seed(seed).get_state()
+                )
+                if self.device.type == "cuda":
+                    with torch.cuda.device(self.device):
+                        torch.cuda.manual_seed(seed)
             if roi_size is None:
                 logits = self.model(inputs.to(self.device))
             else:

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add weighted ensemble probability reduction, reversible flip TTA, model disagreement, and supported Monte Carlo dropout sampling.
+- Add predictive entropy, probability variance, voxel confidence maps, and the interactive local NeuroConfidence research viewer.
+
 - Integrate MONAI SegResNet, Attention U-Net, UNETR, and Swin UNETR through a common model contract, factory, and architecture registry.
 - Add architecture-aware checkpoint reconstruction, tensor inference, parameter counts, and scoped forward profiling.
 
