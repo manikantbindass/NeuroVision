@@ -22,6 +22,8 @@ training = ["torch>=2.8,<3", "scipy>=1.15,<2", "setuptools>=84.1"]
 zoo = ["monai==1.6.1", "einops>=0.8,<1", "torch>=2.8,<3", "setuptools>=84.1"]
 api = ["fastapi>=0.115,<1", "pydantic>=2.9,<3", "uvicorn>=0.34,<1"]
 api-test = ["httpx>=0.28,<1"]
+pdf = ["reportlab>=4.4,<5"]
+report-test = ["pypdf>=6,<7"]
 
 [project.scripts]
 neurovision = "neurovision.__main__:main"
@@ -41,8 +43,8 @@ select = ["E", "F", "I", "UP", "B"]
 python_version = "3.11"
 files = ["neurovision", "apps/api", "tests"]
 strict = true
-untyped_calls_exclude = ["nibabel", "SimpleITK", "torch", "monai"]
+untyped_calls_exclude = ["nibabel", "SimpleITK", "torch", "monai", "reportlab"]
 
 [[tool.mypy.overrides]]
-module = ["nibabel", "nibabel.*", "scipy", "scipy.*", "SimpleITK", "SimpleITK.*"]
+module = ["nibabel", "nibabel.*", "scipy", "scipy.*", "SimpleITK", "SimpleITK.*", "reportlab", "reportlab.*"]
 ignore_missing_imports = true

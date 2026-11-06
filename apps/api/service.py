@@ -1,5 +1,6 @@
 """Bridge validated API requests to the existing imaging and research engines."""
 
+import hashlib
 import io
 import json
 from collections.abc import Mapping
@@ -30,9 +31,10 @@ from neurovision.imaging.volume import ImagingError, Modality, MRIVolume
 from neurovision.inference.engine import InferenceEngine
 from neurovision.mapping.atlas import AtlasRegion, LocalLabelAtlas
 from neurovision.mapping.engine import NeuroMapEngine
-from neurovision.preprocessing.contracts import matrix_values, same_grid
+from neurovision.preprocessing.contracts import matrix_values, same_grid, volume_digest
 from neurovision.preprocessing.intensity import NormalizeIntensity
 from neurovision.preprocessing.pipeline import PreprocessingPipeline
+from neurovision.reporting.research import build_report, software_versions, timestamp
 from neurovision.uncertainty.example import SyntheticThresholdModel
 
 Metadata = dict[str, Any]
@@ -46,6 +48,7 @@ class ModelEntry:
     revision: str
     modality: Modality | None = None
     synthetic: bool = False
+    limitations: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         spec = self.engine.model.input_spec
@@ -120,6 +123,16 @@ class ResearchService:
         self.store = store
         self.models = dict(models)
         self.limits = limits
+        self.model_fingerprints: dict[str, str] = {}
+        for name, model in self.models.items():
+            digest = hashlib.sha256()
+            for key, value in sorted(model.engine.model.state_dict().items()):
+                tensor = value.detach().cpu().contiguous()
+                digest.update(
+                    repr((key, tuple(tensor.shape), str(tensor.dtype))).encode()
+                )
+                digest.update(tensor.reshape(-1).view(torch.uint8).numpy().tobytes())
+            self.model_fingerprints[name] = digest.hexdigest()
 
     def upload(
         self,
@@ -143,6 +156,8 @@ class ResearchService:
             ) from None
         key = uuid4()
         metadata = {
+            "created_at": timestamp(),
+            "volume_sha256": volume_digest(volume),
             "id": str(key),
             "role": role,
             "shape": volume.data.shape,
@@ -231,7 +246,7 @@ class ResearchService:
     def _run(self, job: Job) -> str:
         owner, key, body = job.owner, job.id, job.payload
         self.check_inputs(owner, body)
-        base = {"id": str(key), "notice": RESEARCH_NOTICE}
+        base = {"id": str(key), "notice": RESEARCH_NOTICE, "created_at": timestamp()}
         output: object
         array_bytes = 0
         route = "segmentations" if job.kind == "inference" else job.kind
@@ -254,6 +269,7 @@ class ResearchService:
             }
             output = metadata
             if result.volume is not None:
+                metadata["volume_sha256"] = volume_digest(result.volume)
                 output = Scan(result.volume, "image", metadata)
                 array_bytes = result.volume.data.nbytes
         elif isinstance(body, InferenceRequest):
@@ -272,27 +288,52 @@ class ResearchService:
             metadata = {**base, **self._map(owner, body)}
             output = metadata
         else:
-            metadata = {
-                **base,
-                "schema_version": 1,
-                "sources": [
-                    {
-                        "kind": self.store.get(owner, item).kind,
-                        "summary": self.summary(owner, item),
-                    }
-                    for item in body.artifact_ids
-                ],
-            }
+            metadata = self._report(owner, key, body.artifact_ids)
             output = metadata
         self.store.put(
             owner, key, Artifact(job.kind, output, array_bytes + _json_size(metadata))
         )
         return f"/api/v1/{route}/{key}"
 
+    def _report(self, owner: str, key: UUID, requested: list[UUID]) -> Metadata:
+        sources = []
+        pending = list(requested)
+        seen: set[UUID] = set()
+        while pending:
+            artifact_id = pending.pop(0)
+            if artifact_id in seen:
+                continue
+            seen.add(artifact_id)
+            if len(seen) > 32:
+                raise APIError(
+                    422, "report_too_large", "Report dependency limit exceeded."
+                )
+            artifact = self.store.get(owner, artifact_id)
+            data = self.summary(owner, artifact_id)
+            sources.append({"kind": artifact.kind, "summary": data})
+            for field in (
+                "scan_id",
+                "source_scan_id",
+                "segmentation_id",
+                "target_scan_id",
+                "atlas_scan_id",
+            ):
+                if value := data.get(field):
+                    related = UUID(value)
+                    try:
+                        self.store.get(owner, related)
+                    except APIError as exc:
+                        if exc.status != 404:
+                            raise
+                    else:
+                        pending.append(related)
+        return build_report(str(key), sources)
+
     def _infer(
         self, owner: str, body: InferenceRequest, base: Metadata
     ) -> Segmentation:
-        volume = self.scan(owner, body.scan_id, "image").volume
+        scan = self.scan(owner, body.scan_id, "image")
+        volume = scan.volume
         model = self.models[body.model_id]
         if model.modality is not None and volume.modality != model.modality:
             raise APIError(
@@ -315,6 +356,50 @@ class ResearchService:
         labels = prediction.labels[0].numpy().astype(np.uint16)
         for array in (labels, confidence, entropy):
             array.setflags(write=False)
+        voxel_mm3 = float(abs(np.linalg.det(volume.affine[:3, :3])))
+        physical_units = not volume.assumed_mm
+        if physical_units and not np.isfinite(voxel_mm3 * labels.size):
+            raise ValueError("Physical volume exceeds numerical bounds")
+        counts = np.bincount(labels.ravel(), minlength=len(model.classes))
+        foreground = int(counts[1:].sum())
+        class_stats = []
+        volumes = []
+        for code, name in enumerate(model.classes):
+            mask = labels == code
+            count = int(counts[code])
+            class_stats.append(
+                {
+                    "class_id": code,
+                    "name": name,
+                    "voxels": count,
+                    "mean_confidence": float(confidence[mask].mean(dtype=np.float64))
+                    if count
+                    else None,
+                    "mean_normalized_entropy": float(
+                        entropy[mask].mean(dtype=np.float64)
+                    )
+                    if count
+                    else None,
+                    "fraction_confidence_ge_0_8": float(
+                        np.mean(confidence[mask] >= 0.8)
+                    )
+                    if count
+                    else None,
+                }
+            )
+            if code:
+                volumes.append(
+                    {
+                        "class_id": code,
+                        "name": name,
+                        "voxel_count": count,
+                        "volume_mm3": count * voxel_mm3 if physical_units else None,
+                        "fraction_of_foreground": count / foreground
+                        if foreground
+                        else None,
+                        "units_verified": physical_units,
+                    }
+                )
         metadata = {
             **base,
             "scan_id": str(body.scan_id),
@@ -325,10 +410,40 @@ class ResearchService:
             "device": str(model.engine.device),
             "precision": model.engine.precision,
             "synthetic": model.synthetic,
+            "input_scan_snapshot": scan.metadata,
+            "preprocessing_snapshot": scan.metadata.get("provenance"),
+            "input_volume_sha256": volume_digest(volume),
+            "labels_sha256": hashlib.sha256(labels.astype("<u2").tobytes()).hexdigest(),
+            "software": software_versions(),
+            "model": {
+                "id": body.model_id,
+                "revision": model.revision,
+                "definition": asdict(model.engine.model.model_config),
+                "state_sha256": self.model_fingerprints[body.model_id],
+                "synthetic": model.synthetic,
+                "device": str(model.engine.device),
+                "precision": model.engine.precision,
+            },
+            "model_limitations": [
+                *model.limitations,
+                *(
+                    ["Analytic synthetic threshold fixture without MRI weights."]
+                    if model.synthetic
+                    else ["MRI performance and calibration require task validation."]
+                ),
+            ],
+            "confidence_statistics": {
+                "scope": "per predicted class including background",
+                "threshold": 0.8,
+                "classes": class_stats,
+            },
+            "volumetry": volumes,
             "label_voxels": np.bincount(
                 labels.ravel(), minlength=len(model.classes)
             ).tolist(),
             "uncertainty": {
+                "scope": "all voxels including background",
+                "method": "single-model maximum probability and normalized entropy",
                 "mean_confidence": float(confidence.mean(dtype=np.float64)),
                 "mean_normalized_entropy": float(entropy.mean(dtype=np.float64)),
                 "calibrated": False,

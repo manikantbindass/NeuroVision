@@ -83,7 +83,7 @@ test("mobile routes expose functional synthetic results and an accessible upload
     ["Model Comparison", "Prediction runs"],
     ["NeuroMap", "Regional overlap"],
     ["Metrics", "Overlap and distance metrics"],
-    ["Reports", "Structured research report"],
+    ["Reports", "AI-Assisted Research Segmentation Report"],
     ["MRI Upload", "Add a NIfTI volume"],
     ["System / Models", "Local API connection"],
   ]) {
@@ -212,6 +212,15 @@ test("connected browser runs the synthetic research pipeline", async ({
   await expect(
     page.getByRole("button", { name: "Download JSON" }),
   ).toBeVisible();
+  const htmlDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download HTML" }).click();
+  expect((await htmlDownload).suggestedFilename()).toBe("research-report.html");
+  await expect(
+    page.getByRole("button", { name: "Download PDF" }),
+  ).toBeVisible();
+  const pdfDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download PDF" }).click();
+  expect((await pdfDownload).suggestedFilename()).toBe("research-report.pdf");
   await openPage(page, "System / Models");
   await page.getByRole("button", { name: "Disconnect API" }).click();
   await expect(page.getByRole("button", { name: "Local demo" })).toBeVisible();

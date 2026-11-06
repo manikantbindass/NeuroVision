@@ -53,6 +53,8 @@ from apps.api.service import (
 from neurovision.core.pipeline import RESEARCH_NOTICE
 from neurovision.imaging.limits import IngestionLimits
 from neurovision.imaging.volume import Modality
+from neurovision.reporting.export import pdf_available, report_html, report_pdf
+from neurovision.reporting.research import PDFUnavailable, report_json
 
 PREFIX = "/api/v1"
 DEFAULT_LIMITS = IngestionLimits(
@@ -343,6 +345,45 @@ def create_app(
     @router.get("/reports/{key}", tags=["results"])
     def report_result(key: UUID, owner: Owner) -> Metadata:
         return service.summary(owner, key, "reports")
+
+    @router.get("/reports/{key}/exports", tags=["results"])
+    def report_exports(key: UUID, owner: Owner) -> dict[str, list[str]]:
+        service.summary(owner, key, "reports")
+        return {"formats": ["json", "html", *(["pdf"] if pdf_available() else [])]}
+
+    @router.get(
+        "/reports/{key}/export.{format}", tags=["results"], response_class=Response
+    )
+    def export_report(
+        key: UUID, format: Literal["json", "html", "pdf"], owner: Owner
+    ) -> Response:
+        report = service.summary(owner, key, "reports")
+        try:
+            if format == "pdf":
+                data = report_pdf(report)
+                media_type = "application/pdf"
+            elif format == "html":
+                data = report_html(report)
+                media_type = "text/html"
+            else:
+                data = report_json(report)
+                media_type = "application/json"
+        except PDFUnavailable:
+            raise APIError(
+                503, "pdf_unavailable", "The optional PDF renderer is unavailable."
+            ) from None
+        return Response(
+            data,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": (
+                    f'attachment; filename="research-report.{format}"'
+                ),
+                "Content-Security-Policy": (
+                    "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+                ),
+            },
+        )
 
     @router.get("/jobs", tags=["jobs"])
     def jobs(request: Request, owner: Owner) -> list[JobView]:

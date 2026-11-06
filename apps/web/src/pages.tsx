@@ -1,6 +1,6 @@
 import { ArrowRight, Download, FileUp, Play, RefreshCw } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
-import type { Maps, Metrics, Model, QC, Report, Scan } from "./api";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import type { Api, Maps, Metrics, Model, QC, Report, Scan } from "./api";
 import {
   compareMasks,
   demo,
@@ -9,8 +9,16 @@ import {
   type Case,
   type OverlaySet,
 } from "./demo";
-import { display, downloadJson, Empty, Metric, Panel } from "./ui";
+import {
+  display,
+  downloadBlob,
+  downloadJson,
+  Empty,
+  Metric,
+  Panel,
+} from "./ui";
 import { Viewer } from "./viewer";
+import { syntheticResearchReport } from "./report";
 
 export function Upload({
   connected,
@@ -914,32 +922,45 @@ export function Reports({
   sources,
   busy,
   run,
+  api,
 }: {
   current: Case;
   report?: Report;
   sources: string[];
   busy: boolean;
   run: () => void;
+  api?: Api;
 }) {
+  const [formats, setFormats] = useState<string[]>(["json", "html"]);
+  const [exportError, setExportError] = useState("");
+  const [exporting, setExporting] = useState(false);
+  useEffect(() => {
+    let active = true;
+    if (api && report) {
+      void api
+        .json<{ formats: string[] }>(`/api/v1/reports/${report.id}/exports`)
+        .then((value) => {
+          if (active) setFormats(value.formats);
+        })
+        .catch(() => {
+          if (active) setFormats(["json", "html"]);
+        });
+    }
+    return () => {
+      active = false;
+    };
+  }, [api, report]);
   const syntheticReport = useMemo(
     () =>
-      current.source === "synthetic"
-        ? {
-            schema_version: 1,
-            notice: NOTICE,
-            source: "synthetic analytic phantom",
-            metrics: demo().variants.map((variant) => ({
-              model: variant.label,
-              lesion: compareMasks(variant.labels, demo().truth, 1),
-              ventricle: compareMasks(variant.labels, demo().truth, 2),
-            })),
-          }
-        : undefined,
+      current.source === "synthetic" ? syntheticResearchReport() : undefined,
     [current.source],
   );
   const document = syntheticReport ?? report;
   return (
-    <Panel title="Structured research report" kicker="JSON EXPORT">
+    <Panel
+      title="AI-Assisted Research Segmentation Report"
+      kicker="RESEARCH EXPORT"
+    >
       {current.source === "api" && (
         <>
           <p>
@@ -957,15 +978,59 @@ export function Reports({
       )}
       {document ? (
         <>
-          <p>Review the research snapshot or download a JSON copy.</p>
-          <button
-            className="secondary"
-            onClick={() =>
-              downloadJson(document, "neurovision-research-report.json")
-            }
-          >
-            <Download size={16} /> Download JSON
-          </button>
+          <p>Review the captured metadata and export this research snapshot.</p>
+          <div className="button-row">
+            <button
+              className="secondary"
+              onClick={() =>
+                downloadJson(document, "neurovision-research-report.json")
+              }
+            >
+              <Download size={16} /> Download JSON
+            </button>
+            {(syntheticReport
+              ? ["html"]
+              : formats.filter((format) => format !== "json")
+            ).map((format) => (
+              <button
+                key={format}
+                className="secondary"
+                disabled={exporting}
+                onClick={() => {
+                  setExportError("");
+                  if (syntheticReport) {
+                    const escaped = JSON.stringify(syntheticReport, null, 2)
+                      .replaceAll("&", "&amp;")
+                      .replaceAll("<", "&lt;")
+                      .replaceAll(">", "&gt;");
+                    const html = `<!doctype html><html lang="en"><meta charset="utf-8"><title>${syntheticReport.title}</title><body><h1>${syntheticReport.title}</h1><p>${NOTICE}</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere">${escaped}</pre></body></html>`;
+                    downloadBlob(
+                      new Blob([html], { type: "text/html" }),
+                      "research-report.html",
+                    );
+                  } else if (api && report) {
+                    setExporting(true);
+                    void api
+                      .exportReport(report.id, format)
+                      .then((blob) =>
+                        downloadBlob(blob, `research-report.${format}`),
+                      )
+                      .catch((error: unknown) =>
+                        setExportError(
+                          error instanceof Error
+                            ? error.message
+                            : "Report export failed.",
+                        ),
+                      )
+                      .finally(() => setExporting(false));
+                  }
+                }}
+              >
+                <Download size={16} /> Download {format.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          {exportError && <p role="alert">{exportError}</p>}
           <pre className="report-preview">
             {JSON.stringify(document, null, 2)}
           </pre>

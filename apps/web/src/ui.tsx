@@ -82,9 +82,14 @@ export function Metric({
 }
 
 export function downloadJson(value: unknown, filename: string) {
-  const url = URL.createObjectURL(
+  downloadBlob(
     new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }),
+    filename,
   );
+}
+
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
