@@ -1,0 +1,18 @@
+stages:
+  synthetic-training:
+    cmd: python -m neurovision.mlops.example --config configs/baseline-2d.json --output artifacts/dvc-synthetic
+    deps:
+      - neurovision/mlops
+      - neurovision/training
+      - neurovision/models
+      - neurovision/evaluation
+      - configs/baseline-2d.json
+      - pyproject.toml
+    params:
+      - configs/baseline-2d.json:
+          - model
+          - loss
+          - training
+          - augmentation
+    outs:
+      - artifacts/dvc-synthetic

@@ -1,0 +1,7 @@
+# Only non-identifying, reviewed inputs belong in shared data-version stores.
+.git
+.venv*
+node_modules
+__pycache__
+.env
+.env.*

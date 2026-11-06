@@ -20,6 +20,9 @@ from torch.utils.data import DataLoader, Dataset
 
 from neurovision.core.pipeline import RESEARCH_NOTICE
 from neurovision.evaluation.segmentation import segmentation_metrics
+from neurovision.mlops.lifecycle import persist_lifecycle
+from neurovision.mlops.provenance import DataProvenance, capture_identity
+from neurovision.mlops.tracking import ExperimentTracker, tracking_attempt
 from neurovision.models.base import BaseSegmentationModel
 from neurovision.models.checkpoints import CheckpointManager
 from neurovision.models.factory import ModelFactory, MonaiSegmentationModel
@@ -49,6 +52,7 @@ class FitResult:
     history: tuple[EpochResult, ...]
     best_epoch: int
     stopped_early: bool
+    tracking_run_id: str | None = None
 
 
 def _seed(seed: int) -> None:
@@ -229,7 +233,12 @@ def _resume_state(
     scaler: torch.amp.GradScaler,
 ) -> tuple[list[EpochResult], float, int, int]:
     state = CheckpointManager.load_training(checkpoint)
-    if state.get("run") != run:
+    stored_run = state.get("run")
+    expected = run
+    if isinstance(stored_run, dict) and "mlops" not in stored_run:
+        # Older checkpoints keep their original compatibility checks.
+        expected = {key: value for key, value in run.items() if key != "mlops"}
+    if stored_run != expected:
         raise TrainingError(
             "Checkpoint data, environment, or experiment configuration differs"
         )
@@ -266,6 +275,9 @@ def fit(
     data_id: str,
     resume: bool = False,
     factory: ModelFactory | None = None,
+    provenance: DataProvenance | None = None,
+    tracker: ExperimentTracker | None = None,
+    code_root: Path | None = None,
 ) -> FitResult:
     """Train on finite CPU tensors and checkpoint at complete epoch boundaries."""
     if not data_id.strip() or len(data_id) > 256:
@@ -320,6 +332,14 @@ def fit(
         if device.type == "cuda"
         else "cpu",
     }
+    run["mlops"] = capture_identity(
+        recipe,
+        data_id,
+        training,
+        validation,
+        provenance,
+        code_root if code_root is not None else Path(__file__).resolve().parents[2],
+    )
     history: list[EpochResult] = []
     best_loss, best_epoch, stagnant = float("inf"), 0, 0
     if resume:
@@ -330,59 +350,92 @@ def fit(
             raise TrainingError(
                 "Resume requires the best checkpoint and a sufficient epoch budget"
             )
-    valid_loader = DataLoader(validation, batch_size=settings.batch_size, shuffle=False)
-    for epoch in range(len(history) + 1, settings.epochs + 1):
-        if stagnant >= settings.early_stopping_patience:
-            break
-        _seed(_epoch_seed(settings.seed, epoch, "global"))
-        loader_rng = torch.Generator().manual_seed(
-            _epoch_seed(settings.seed, epoch, "shuffle")
+    with tracking_attempt(
+        tracker,
+        {"identity": run["mlops"], "configuration": asdict(config), "resumed": resume},
+        output,
+    ) as tracking_run_id:
+        valid_loader = DataLoader(
+            validation, batch_size=settings.batch_size, shuffle=False
         )
-        augment_rng = torch.Generator().manual_seed(
-            _epoch_seed(settings.seed, epoch, "augment")
+        for epoch in range(len(history) + 1, settings.epochs + 1):
+            if stagnant >= settings.early_stopping_patience:
+                break
+            _seed(_epoch_seed(settings.seed, epoch, "global"))
+            loader_rng = torch.Generator().manual_seed(
+                _epoch_seed(settings.seed, epoch, "shuffle")
+            )
+            augment_rng = torch.Generator().manual_seed(
+                _epoch_seed(settings.seed, epoch, "augment")
+            )
+            train_loader = DataLoader(
+                training,
+                batch_size=settings.batch_size,
+                shuffle=True,
+                generator=loader_rng,
+            )
+            training_loss, _ = _epoch(
+                train_loader,
+                model,
+                loss_fn,
+                config,
+                device,
+                scaler,
+                optimizer,
+                augment_rng,
+            )
+            validation_loss, scores = _epoch(
+                valid_loader, model, loss_fn, config, device, scaler, None, augment_rng
+            )
+            lr = float(optimizer.param_groups[0]["lr"])
+            scheduler.step(validation_loss)
+            history.append(
+                EpochResult(epoch, training_loss, validation_loss, lr, scores)
+            )
+            if tracker is not None:
+                values = {
+                    "training_loss": training_loss,
+                    "validation_loss": validation_loss,
+                    "learning_rate": lr,
+                }
+                for label, metrics in scores.items():
+                    for name, metric in metrics.items():
+                        if metric["mean"] is not None:
+                            values[f"class_{label}.{name}"] = float(metric["mean"])
+                tracker.metrics(epoch, values)
+            improved = validation_loss < best_loss - settings.min_delta
+            if improved:
+                best_loss, best_epoch, stagnant = validation_loss, epoch, 0
+            else:
+                stagnant += 1
+            state = {
+                "schema_version": 1,
+                "run": run,
+                "tracking_run_id": tracking_run_id,
+                "history": [asdict(item) for item in history],
+                "best_loss": best_loss,
+                "best_epoch": best_epoch,
+                "stagnant": stagnant,
+                "model": model.state_dict(),
+                "optimizer": optimizer.state_dict(),
+                "scheduler": scheduler.state_dict(),
+                "scaler": scaler.state_dict(),
+            }
+            if improved:
+                CheckpointManager.save_training(output / "best.pt", state)
+            CheckpointManager.save_training(output / "last.pt", state)
+        stopped = stagnant >= settings.early_stopping_patience
+        save_history(
+            output / "history.json",
+            {
+                "notice": RESEARCH_NOTICE,
+                "run": run,
+                "epoch_budget": settings.epochs,
+                "best_epoch": best_epoch,
+                "stopped_early": stopped,
+                "epochs": [asdict(item) for item in history],
+            },
         )
-        train_loader = DataLoader(
-            training, batch_size=settings.batch_size, shuffle=True, generator=loader_rng
-        )
-        training_loss, _ = _epoch(
-            train_loader, model, loss_fn, config, device, scaler, optimizer, augment_rng
-        )
-        validation_loss, scores = _epoch(
-            valid_loader, model, loss_fn, config, device, scaler, None, augment_rng
-        )
-        lr = float(optimizer.param_groups[0]["lr"])
-        scheduler.step(validation_loss)
-        history.append(EpochResult(epoch, training_loss, validation_loss, lr, scores))
-        improved = validation_loss < best_loss - settings.min_delta
-        if improved:
-            best_loss, best_epoch, stagnant = validation_loss, epoch, 0
-        else:
-            stagnant += 1
-        state = {
-            "schema_version": 1,
-            "run": run,
-            "history": [asdict(item) for item in history],
-            "best_loss": best_loss,
-            "best_epoch": best_epoch,
-            "stagnant": stagnant,
-            "model": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "scheduler": scheduler.state_dict(),
-            "scaler": scaler.state_dict(),
-        }
-        if improved:
-            CheckpointManager.save_training(output / "best.pt", state)
-        CheckpointManager.save_training(output / "last.pt", state)
-    stopped = stagnant >= settings.early_stopping_patience
-    save_history(
-        output / "history.json",
-        {
-            "notice": RESEARCH_NOTICE,
-            "run": run,
-            "epoch_budget": settings.epochs,
-            "best_epoch": best_epoch,
-            "stopped_early": stopped,
-            "epochs": [asdict(item) for item in history],
-        },
-    )
-    return FitResult(model, tuple(history), best_epoch, stopped)
+        selected_state = CheckpointManager.load_training(output / "last.pt")
+        persist_lifecycle(output, selected_state, epoch_budget=settings.epochs)
+        return FitResult(model, tuple(history), best_epoch, stopped, tracking_run_id)

@@ -1,4 +1,5 @@
 {
+  "schema_version": 1,
   "model": {
     "architecture": "unetr", "spatial_dims": 3, "in_channels": 1, "num_classes": 2,
     "parameters": {"img_size": [32, 32, 32], "feature_size": 4, "hidden_size": 48,

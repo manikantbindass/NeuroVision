@@ -249,6 +249,19 @@ def validate_dataset(
     return DatasetSummary(len(manifest.cases), total_volumes, total_labels)
 
 
+def resolve_dataset_file(root: Path, relative: str) -> Path:
+    """Resolve a validated manifest path without leaving its dataset root."""
+    _validate_path(relative)
+    try:
+        root = root.resolve(strict=True)
+        path = (root / relative).resolve(strict=True)
+    except (OSError, RuntimeError):
+        raise DatasetError("Manifest references an inaccessible dataset file") from None
+    if not root.is_dir() or not path.is_relative_to(root):
+        raise DatasetError("Dataset file must stay inside its dataset root")
+    return path
+
+
 def _load(
     root: Path,
     relative: str,
@@ -258,11 +271,8 @@ def _load(
     *,
     label_map: bool,
 ) -> MRIVolume:
-    try:
-        path = (root / relative).resolve(strict=True)
-    except (OSError, RuntimeError):
-        raise DatasetError("Manifest references an inaccessible dataset file") from None
-    if not path.is_relative_to(root) or path in seen:
+    path = resolve_dataset_file(root, relative)
+    if path in seen:
         raise DatasetError(
             "Dataset files must be unique and stay inside the dataset root"
         )

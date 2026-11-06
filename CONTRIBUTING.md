@@ -9,7 +9,7 @@ Follow the virtual environment setup in the [README](README.md) and activate the
 ```text
 python -m pip install --upgrade pip
 python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
-python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test,pdf,report-test]"
+python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test,pdf,report-test,mlops]"
 python -m pre_commit install
 python -m pre_commit run --all-files
 python -m ruff check neurovision tests

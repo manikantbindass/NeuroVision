@@ -23,6 +23,10 @@
 !neurovision/uncertainty/
 !neurovision/uncertainty/*.py
 !neurovision/uncertainty/*.html
+!neurovision/mlops/
+!neurovision/mlops/*.py
+!neurovision/reporting/
+!neurovision/reporting/*.py
 !deployment/
 !deployment/docker/
 !deployment/docker/Dockerfile

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add training provenance, dataset and configuration fingerprints, Git and environment snapshots, run-specific model cards, and reproducibility records.
+- Add opt-in local MLflow experiment tracking, trained-artifact registry adapters, and a DVC-compatible synthetic workflow.
+
 - Add schema-versioned AI-Assisted Research Segmentation Reports with input, model, QC, volume, uncertainty, evaluation, and reproducibility metadata.
 - Add integrity-checked JSON, escaped HTML, optional PDF exports, and report download controls in the web workspace.
 

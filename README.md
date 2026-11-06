@@ -26,6 +26,8 @@ The React research workspace adds synchronized MRI slices, segmentation and unce
 
 Research reports capture scan and preprocessing metadata, QC, model versions, class volumes, uncertainty, selected evaluation results, and reproducibility fingerprints. Export JSON, HTML, or optional PDF from the Reports page. [Reporting guide](docs/research/REPORTING.md)
 
+Training artifacts record dataset and configuration fingerprints, Git revision, dependency snapshots, and run-specific model cards. Optional local MLflow tracking and artifact registries support versioned experiments, with a DVC-compatible synthetic workflow. [MLOps guide](docs/development/MLOPS.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup

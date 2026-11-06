@@ -100,8 +100,14 @@ def load_experiment(path: Path) -> ExperimentConfig:
             "loss",
             "training",
             "augmentation",
+            "schema_version",
         }:
             raise ValueError("Invalid experiment configuration sections")
+        if (
+            type(config.get("schema_version", 1)) is not int
+            or config.get("schema_version", 1) != 1
+        ):
+            raise ValueError("Unsupported experiment configuration schema")
         model = dict(config["model"])
         training = dict(config.get("training", {}))
         if "features" in model and "architecture" not in model:
