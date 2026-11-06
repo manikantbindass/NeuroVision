@@ -1,4 +1,4 @@
-<img src="docs/assets/header.svg" alt="NeuroVision-2028 animated MRI scan illustration" width="100%">
+<img src="assets/animations/header.svg" alt="NeuroVision-2028 animated MRI scan illustration" width="100%">
 
 # NeuroVision-2028
 
@@ -49,4 +49,6 @@ py -3 -m venv .venv
 
 The CLI requires no configuration or MRI data. To check formatting and lint locally, install Ruff in your development environment and run `python -m ruff format --check .` and `python -m ruff check .` with that environment's interpreter.
 
-<img src="docs/assets/footer.svg" alt="Animated flow from MRI to a research report" width="100%">
+See the [repository map](docs/architecture/REPOSITORY.md), [contributor guide](CONTRIBUTING.md), and [local CLI container setup](docs/deployment/README.md).
+
+<img src="assets/animations/footer.svg" alt="Animated flow from MRI to a research report" width="100%">

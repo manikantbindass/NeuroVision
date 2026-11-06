@@ -2,6 +2,7 @@ import subprocess
 import sys
 import unittest
 
+from neurovision.core import pipeline as core_pipeline
 from neurovision.pipeline import PipelineComponent, RunContext, Stage
 
 NOTICE = (
@@ -11,6 +12,11 @@ NOTICE = (
 
 
 class PipelineTests(unittest.TestCase):
+    def test_public_imports_keep_core_type_identity(self) -> None:
+        self.assertIs(Stage, core_pipeline.Stage)
+        self.assertIs(RunContext, core_pipeline.RunContext)
+        self.assertIs(PipelineComponent, core_pipeline.PipelineComponent)
+
     def test_replacement_uses_same_component_contract(self) -> None:
         class Identity:
             stage = Stage.NORMALIZATION
