@@ -17,7 +17,7 @@
 | Longitudinal comparison | Local research experiment available | Compare time points using reviewed rigid registration, native region volumes, shared-coverage spatial changes, and optional paired replicate spread. [NeuroTimeline guide](../research/NEUROTIMELINE.md) |
 | 2D viewer and 3D visualization | Planned | Verify slice orientation, overlay alignment and label identity before adding surfaces. Record any mesh simplification used for display. |
 | Reproducible pipelines, experiment tracking and model registry | Planned | Record code revision, split manifest, parameters, seed, artifact hashes and software versions. Resolve models by immutable version or digest with a declared modality and label contract. |
-| REST API, asynchronous inference and GPU inference | Planned | Separate HTTP requests from long jobs. Test authorization, bounded uploads, duplicate submissions, retries, cancellation, worker failure and device selection. Record actual device and precision in run metadata. |
+| REST API and asynchronous inference | Local service available | Versioned routes with owner-scoped storage and bounded local work queues. Distributed workers, cancellation and retries remain planned. [API guide](../api/README.md) |
 | Containers, Kubernetes and observability | Planned | Verify a local container build and smoke test before orchestration. Test readiness, worker resource limits, telemetry redaction, and end-to-end operation before claiming deployment support. |
 
 ## Technology choices by layer

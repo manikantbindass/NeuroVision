@@ -20,6 +20,8 @@ NeuroMap measures segmented volumes and overlaps with registered local atlases. 
 
 NeuroTimeline compares regional volumes and registered segmentation masks across MRI time points. Run `python -m neurovision.longitudinal.example --output artifacts/neurotimeline-synthetic/timeline.html` after setup for an interactive synthetic demonstration. [NeuroTimeline research guide](docs/research/NEUROTIMELINE.md)
 
+The FastAPI service exposes authenticated MRI uploads, queued research jobs, segmentation exports, and OpenAPI documentation. [Backend setup and API guide](docs/api/README.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup
