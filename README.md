@@ -18,6 +18,8 @@ Ensemble experiments add weighted probability averaging, reversible flip TTA, mo
 
 NeuroMap measures segmented volumes and overlaps with registered local atlases. The comparison report shows the MRI, labels, aligned atlas, gradient saliency, and patch occlusion side by side. Run `python -m neurovision.mapping.example --output artifacts/neuromap-synthetic/comparison.html` after setup for a synthetic demonstration. [NeuroMap research guide](docs/research/NEUROMAP.md)
 
+NeuroTimeline compares regional volumes and registered segmentation masks across MRI time points. Run `python -m neurovision.longitudinal.example --output artifacts/neurotimeline-synthetic/timeline.html` after setup for an interactive synthetic demonstration. [NeuroTimeline research guide](docs/research/NEUROTIMELINE.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup

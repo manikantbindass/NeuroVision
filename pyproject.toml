@@ -30,6 +30,7 @@ namespaces = false
 
 [tool.setuptools.package-data]
 "neurovision.uncertainty" = ["*.html"]
+"neurovision.longitudinal" = ["*.html"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
