@@ -16,6 +16,22 @@ A reproducible workspace for preparing brain MRI, testing segmentation models, a
 
 [Quick start](#installation-and-quick-start) · [Synthetic demo](#synthetic-demo) · [Train and infer](#training-and-inference) · [Deployment](#deployment) · [Benchmarking](#benchmarking-and-evaluation)
 
+### Platform at a glance
+
+The browser can run the built-in phantom offline. In connected deployments, FastAPI accepts reviewed NIfTI and queues work. A separate worker retrieves jobs and publishes results through PostgreSQL. Redis coordinates request limits.
+
+```mermaid
+flowchart LR
+    Browser["React research workspace"] -->|Upload and poll| API["FastAPI"]
+    API -->|Store scans and queue jobs| PG[("PostgreSQL")]
+    API -->|Rate limits| Redis[("Redis")]
+    Worker["Leased inference worker"] <-->|Claim jobs and publish results| PG
+    Monitor["Private Prometheus"] -.-> API
+    Monitor -.-> Worker
+```
+
+Start with the synthetic demo to explore slices, overlays and reports. Use the Python library to train or compare models. Real MRI performance remains unbenchmarked.
+
 ## Why NeuroVision exists
 
 Segmentation experiments depend on more than the network architecture. Voxel spacing, orientation, preprocessing, label definitions and scanner variation can all change a result. A mask alone leaves these decisions hidden and gives a reviewer little context for judging its reliability. NeuroVision connects the steps so researchers can compare experiments using explicit geometry, configuration, QC, and model provenance.
@@ -42,16 +58,6 @@ flowchart LR
 ```
 
 This is a reference workflow with optional branches. Python experiments compose the stages they need. The API exposes a bounded subset through separate job and result routes. See the [component contracts](docs/development/ARCHITECTURE.md) and [capability matrix](docs/development/CAPABILITIES.md).
-
-```mermaid
-flowchart LR
-    Browser["React workspace"] --> API["FastAPI"]
-    API --> PG[("PostgreSQL jobs and artifacts")]
-    API --> Redis[("Redis rate limits")]
-    Worker["Leased inference worker"] <--> PG
-    Monitor["Private Prometheus"] -.-> API
-    Monitor -.-> Worker
-```
 
 ### Preprocessing and QC
 
@@ -283,5 +289,21 @@ The repository is maintained by [manikantbindass](https://github.com/manikantbin
 ### Continuous integration
 
 Pull requests run Python formatting, lint, type checks, CPU model and API tests, frontend lint and build, browser tests, and a synthetic Compose workflow. Deployment checks validate Helm and Terraform. Security checks scan dependencies and Git history and reject common medical image extensions from the index. The documentation job checks local README links, diagram SVGs and animation placement. GPU training is outside the pull request workflow. [CI workflow](.github/workflows/ci.yml) · [Deployment checks](.github/workflows/deployment.yml) · [Security checks](.github/workflows/security.yml)
+
+### What a research run leaves behind
+
+Use the report to trace measurements back to the prepared scan and model. Ground-truth metrics appear only when a reference segmentation is available.
+
+```mermaid
+flowchart LR
+    Prep["Prepared scan and QC"] --> Report["AI-Assisted Research Segmentation Report"]
+    Model["Model version and label volumes"] --> Report
+    Uncertainty["Confidence and uncertainty"] --> Report
+    Provenance["Run configuration and limitations"] --> Report
+    Reference["Evaluation with ground truth"] -.-> Report
+    Report --> Export["JSON, HTML or optional PDF"]
+```
+
+[Report fields and exports](docs/research/REPORTING.md) · [Run the synthetic demo](#synthetic-demo)
 
 <img src="assets/animations/neurovision-footer.gif" alt="Animated research workflow. MRI geometry and QC lead to labels and probabilities, then confidence and entropy, regional volume and change, and a report with provenance and limits." width="100%">

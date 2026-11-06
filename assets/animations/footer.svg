@@ -22,8 +22,13 @@
     <circle cx="480" cy="88" r="4"/><circle cx="668" cy="88" r="4"/>
     <circle cx="857" cy="88" r="4"/>
   </g>
+  <path d="M103 88H857" fill="none" stroke="#58dce6" stroke-width="2" stroke-dasharray="754" stroke-dashoffset="754" opacity=".55">
+    <animate attributeName="stroke-dashoffset" values="754;754;565;565;377;377;189;189;0;0"
+      keyTimes="0;.08;.2;.28;.4;.48;.6;.68;.8;1" dur="8s" repeatCount="indefinite"/>
+  </path>
   <circle cx="103" cy="88" r="7" fill="#58dce6">
     <animate attributeName="cx" values="103;103;292;292;480;480;668;668;857;857"
       keyTimes="0;.08;.2;.28;.4;.48;.6;.68;.8;1" dur="8s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="6;8;6" dur="2s" repeatCount="indefinite"/>
   </circle>
 </svg>
