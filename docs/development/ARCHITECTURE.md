@@ -19,7 +19,7 @@ flowchart LR
 
 The CLI lists the catalog. Research callers construct the run context when executing an experiment. See the [foundation configuration](FOUNDATION.md) for the seed and logging contracts.
 
-## Planned research workflow
+## Reference research workflow
 
 ```mermaid
 flowchart TD
@@ -34,7 +34,7 @@ flowchart TD
 
 The reference flow starts with an MRI volume and ends with a structured research report. The order below describes the workflow. Some stages also consume earlier artifacts, such as explainability consuming both the prepared image and a model prediction. Benchmarking can run multiple segmentation components against the same prepared inputs.
 
-| Stage | Planned responsibility |
+| Stage | Responsibility |
 | --- | --- |
 | Validation | Check format, dimensions, spatial metadata and input limits before processing. |
 | De-identification safeguards | Check privacy policy at ingestion and reject or quarantine suspect inputs before downstream storage or logging. |
@@ -54,7 +54,7 @@ The reference flow starts with an MRI volume and ends with a structured research
 
 `PipelineComponent[StageInput, StageOutput]` defines the replacement boundary. Each component declares a stage and implements `run(inputs, *, context)`. Implementations for the same stage can be swapped when they accept the same inputs and preserve the same output semantics. `RunContext` carries an experiment identifier independent of subjects and a seed. Components that use randomness are responsible for applying the seed and documenting sources of nondeterminism.
 
-Future stage implementations should define concrete artifact contracts before joining a workflow. MRI artifacts should carry axis and coordinate conventions, spacing, transforms, and label schema where applicable. Experiment records should capture configuration, software and model versions, and QC outcomes. API and web layers should consume these artifacts and show the research notice on relevant screens and exports.
+MRI artifacts carry coordinate conventions, spacing, transforms, and label schema where applicable. Experiment records capture configuration, software and model versions, and QC outcomes. Python workflows compose the research modules directly. The API and web workspace expose a bounded subset, with a synthetic model for the shipped demo. The [capability matrix](CAPABILITIES.md) tracks experimental and planned features.
 
 The [local ingestion library](IMAGING.md) produces a canonical MRI volume after validation and orientation handling. Its DICOM boundary requires trusted prior review of identifiers in filenames, metadata and pixels. Tests and demos use synthetic data. The stage catalog CLI has no image input.
 
