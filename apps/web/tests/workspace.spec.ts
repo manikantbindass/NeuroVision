@@ -133,6 +133,15 @@ test("connected browser runs the synthetic research pipeline", async ({
 
   await openPage(page, "MRI Upload");
   await page.getByLabel("NIfTI file").setInputFiles({
+    name: "invalid-synthetic.nii",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from("not a NIfTI volume"),
+  });
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Upload volume" }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(page.getByText("API research case")).toHaveCount(0);
+  await page.getByLabel("NIfTI file").setInputFiles({
     name: "synthetic.nii",
     mimeType: "application/octet-stream",
     buffer: nifti,

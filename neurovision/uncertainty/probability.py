@@ -91,11 +91,13 @@ class ProbabilityAccumulator:
                 self._m2 = torch.zeros_like(value)
                 self._votes = torch.zeros_like(value)
             else:
-                assert self._m2 is not None
+                if self._m2 is None:
+                    raise RuntimeError("Probability variance accumulator is missing")
                 delta = value - self._mean
                 self._mean.add_(delta, alpha=weight / total)
                 self._m2.add_(delta * (value - self._mean), alpha=weight)
-            assert self._votes is not None
+            if self._votes is None:
+                raise RuntimeError("Probability vote accumulator is missing")
             labels = value.argmax(dim=1, keepdim=True)
             self._votes.scatter_add_(
                 1, labels, torch.full_like(labels, weight, dtype=torch.float64)

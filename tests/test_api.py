@@ -1,5 +1,7 @@
 """Exercise the FastAPI research workflow with synthetic NIfTI inputs only."""
 
+import gzip
+import json
 import logging
 import unittest
 from collections.abc import Iterator
@@ -78,7 +80,9 @@ class BackendTests(unittest.TestCase):
         return metadata
 
     def test_research_workflow_and_owner_isolation(self) -> None:
-        with TestClient(create_app(authenticator=_auth())) as client:
+        with TestClient(
+            create_app(authenticator=_auth(), expose_metrics=True)
+        ) as client:
             signal = np.linspace(0, 1, 64, dtype=np.float32).reshape(4, 4, 4)
             scan_id = self._upload(client, _nifti(signal))
             volume_path = f"{PREFIX}/scans/{scan_id}/volume.nii"
@@ -120,6 +124,17 @@ class BackendTests(unittest.TestCase):
                 {"scan_id": preprocessing, "model_id": "synthetic-threshold"},
             )
             self.assertEqual(self._result(client, prediction)["label_voxels"], [32, 32])
+            metrics = client.get("/internal/metrics").text
+            self.assertIn(
+                "neurovision_job_executions_total"
+                '{kind="inference",outcome="succeeded"} 1.0',
+                metrics,
+            )
+            self.assertIn(
+                "neurovision_job_execution_duration_seconds_count"
+                '{kind="inference"} 1.0',
+                metrics,
+            )
             self.assertEqual(
                 client.get(f"{PREFIX}/jobs/{prediction}", headers=OTHER).status_code,
                 404,
@@ -310,6 +325,76 @@ class BackendTests(unittest.TestCase):
             )
             self.assertNotIn("do-not-log", "\n".join(logs.output))
             self.assertNotIn("private-input", "\n".join(logs.output))
+
+    def test_upload_hardening_and_low_cardinality_audit(self) -> None:
+        logger = logging.getLogger("neurovision.api.hardening")
+        app = create_app(
+            authenticator=_auth(),
+            logger=logger,
+            expose_metrics=True,
+            limits=IngestionLimits(max_input_bytes=1024, max_decoded_bytes=1024),
+        )
+        marker = "synthetic-private-marker"
+        with TestClient(app) as client, self.assertLogs(logger, "INFO") as logs:
+            denied = client.get(
+                f"{PREFIX}/scans/{marker}",
+                headers=[*OWNER.items(), *OTHER.items()],
+            )
+            self.assertEqual(denied.status_code, 401)
+            self.assertEqual(denied.headers["X-Frame-Options"], "DENY")
+            self.assertEqual(denied.headers["Referrer-Policy"], "no-referrer")
+            self.assertIn("sandbox", denied.headers["Content-Security-Policy"])
+            for field, value, expected in (
+                ("Content-Type", "text/plain", 415),
+                ("Content-Encoding", "gzip", 415),
+                ("X-Deidentified-Research", "false", 422),
+            ):
+                response = client.post(
+                    f"{PREFIX}/scans",
+                    headers=[*UPLOAD.items(), (field, value)],
+                    content=b"broken",
+                )
+                self.assertEqual(response.status_code, expected, response.text)
+            for payload in (gzip.compress(b"x" * 4096), b"PK\x03\x04not-nifti"):
+                rejected = client.post(
+                    f"{PREFIX}/scans?format=nii.gz", headers=UPLOAD, content=payload
+                )
+                self.assertEqual(rejected.status_code, 422, rejected.text)
+
+            raw = _nifti(np.ones((4, 4, 4), dtype=np.float32))
+            uploaded = client.post(
+                f"{PREFIX}/scans",
+                headers={
+                    **UPLOAD,
+                    "Content-Disposition": f'attachment; filename="../../{marker}.nii"',
+                },
+                content=raw,
+            )
+            self.assertEqual(uploaded.status_code, 201, uploaded.text)
+            key = uploaded.json()["id"]
+            exported = client.get(f"{PREFIX}/scans/{key}/volume.nii", headers=OWNER)
+            self.assertEqual(
+                exported.headers["Content-Disposition"],
+                'attachment; filename="volume.nii"',
+            )
+            response = client.get("/internal/metrics")
+            self.assertEqual(response.status_code, 200)
+            self.assertIn('route="/api/v1/scans/{key}/volume.nii"', response.text)
+            self.assertIn('status_class="4xx"', response.text)
+            for secret in (marker, key, OWNER["Authorization"]):
+                self.assertNotIn(secret, response.text)
+                self.assertNotIn(secret, "\n".join(logs.output))
+            events = [json.loads(str(record.msg)) for record in logs.records]
+            self.assertTrue(
+                any(
+                    event["event"] == "research_access"
+                    and event["request_id"] == denied.headers["x-request-id"]
+                    and event["principal"] is None
+                    for event in events
+                )
+            )
+        with TestClient(create_app()) as local:
+            self.assertEqual(local.get("/internal/metrics").status_code, 404)
 
     def test_rate_limit_is_owner_scoped(self) -> None:
         with TestClient(

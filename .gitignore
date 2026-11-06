@@ -3,6 +3,7 @@ __pycache__/
 .venv*/
 .ruff_cache/
 .mypy_cache/
+.coverage
 node_modules/
 test-results/
 playwright-report/
@@ -30,6 +31,12 @@ dist/
 !*.tfvars.example
 *.dcm
 *.dicom
+*.ima
+*.nhdr
+*.mgz
+*.mnc
+*.hdr
+*.img
 *.nii
 *.nii.gz
 *.nrrd

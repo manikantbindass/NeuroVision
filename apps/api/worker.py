@@ -9,12 +9,15 @@ import time
 from collections.abc import Callable
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from prometheus_client import CONTENT_TYPE_LATEST
+
 from apps.api.contracts import APIError, ErrorDetail
 from apps.api.deployed import setting
 from apps.api.durable import Database, Lease, SQLArtifactStore, SQLJobs
 from apps.api.main import DEFAULT_LIMITS
 from apps.api.middleware import log_event
 from apps.api.service import ModelEntry, ResearchService, demo_models
+from apps.api.telemetry import Telemetry
 from neurovision.inference.engine import InferenceEngine
 
 
@@ -25,6 +28,7 @@ def run_lease(
     logger: logging.Logger,
     models: dict[str, ModelEntry] | None = None,
     on_heartbeat: Callable[[], None] | None = None,
+    telemetry: Telemetry | None = None,
 ) -> None:
     store = SQLArtifactStore(database, lease=lease)
     service = ResearchService(
@@ -53,7 +57,11 @@ def run_lease(
         except APIError as missing:
             if missing.status != 404:
                 raise
-            service.run(lease.job)
+            if telemetry is None:
+                service.run(lease.job)
+            else:
+                with telemetry.job(lease.job.kind, lease.job.request_id):
+                    service.run(lease.job)
     except Exception as exc:
         if isinstance(exc, APIError):
             error = ErrorDetail(
@@ -68,15 +76,14 @@ def run_lease(
     finally:
         finished.set()
         thread.join(timeout=3)
-    if not lost.is_set():
-        queue.complete(lease, error=error)
+    published = not lost.is_set() and queue.complete(lease, error=error)
     log_event(
         logger,
         "worker_attempt_complete",
         job_id=str(lease.job.id),
         request_id=lease.job.request_id,
-        lease_lost=lost.is_set(),
-        status="failed" if error else "completed",
+        lease_lost=not published,
+        status=("failed" if error else "completed") if published else "superseded",
     )
 
 
@@ -104,6 +111,7 @@ def main() -> None:
         }
     last_ready = [0.0]
     active = [False]
+    telemetry = Telemetry()
 
     def ready_pulse() -> None:
         last_ready[0] = time.monotonic()
@@ -119,10 +127,10 @@ def main() -> None:
                             f'neurovision_jobs{{status="{state}"}} '
                             f"{counts.get(state, 0)}\n"
                         )
-                    data, status = metrics.encode(), 200
+                    data, status = metrics.encode() + telemetry.exposition(), 200
                 except Exception:
                     data, status = b"# backend unavailable\n", 503
-                content_type = "text/plain; version=0.0.4"
+                content_type = CONTENT_TYPE_LATEST
             else:
                 ready = time.monotonic() - last_ready[0] < 65
                 status = (
@@ -136,6 +144,7 @@ def main() -> None:
                 )
             self.send_response(status)
             self.send_header("Content-Type", content_type)
+            self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
@@ -144,7 +153,8 @@ def main() -> None:
             pass
 
     port = int(os.environ.get("NEUROVISION_WORKER_HEALTH_PORT", "9000"))
-    server = ThreadingHTTPServer(("0.0.0.0", port), Health)
+    # The port is internal to the container network for health and scraping.
+    server = ThreadingHTTPServer(("0.0.0.0", port), Health)  # noqa: S104
     threading.Thread(target=server.serve_forever, daemon=True).start()
     for sig in (signal.SIGINT, signal.SIGTERM):
         signal.signal(sig, lambda *_: stop.set())
@@ -158,7 +168,9 @@ def main() -> None:
                     continue
                 active[0] = True
                 try:
-                    run_lease(database, queue, lease, logger, models, ready_pulse)
+                    run_lease(
+                        database, queue, lease, logger, models, ready_pulse, telemetry
+                    )
                 finally:
                     active[0] = False
             except Exception as exc:

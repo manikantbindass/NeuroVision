@@ -12,6 +12,7 @@ from fastapi import APIRouter, Depends, FastAPI, Header, Request, Response, Secu
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
+from prometheus_client import CONTENT_TYPE_LATEST
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 from starlette.requests import ClientDisconnect
@@ -50,6 +51,7 @@ from apps.api.service import (
     demo_models,
     nifti_bytes,
 )
+from apps.api.telemetry import Telemetry
 from neurovision.core.pipeline import RESEARCH_NOTICE
 from neurovision.imaging.limits import IngestionLimits
 from neurovision.imaging.volume import Modality
@@ -92,6 +94,7 @@ def create_app(
     queue_factory: Callable[[JobRunner, JobEvent], JobQueue] = LocalJobs,
     logger: logging.Logger | None = None,
     readiness: Callable[[], bool] | None = None,
+    expose_metrics: bool = False,
 ) -> FastAPI:
     """Create one local service instance or inject deployment-owned adapters."""
     token = os.environ.get("NEUROVISION_API_TOKEN")
@@ -102,6 +105,7 @@ def create_app(
     )
     storage = store if store is not None else MemoryStore()
     log = logger if logger is not None else _logger()
+    telemetry = Telemetry()
     service = ResearchService(
         storage, models if models is not None else demo_models(), limits
     )
@@ -119,7 +123,11 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-        queue = queue_factory(service.run, job_event)
+        def run(job: Job) -> str:
+            with telemetry.job(job.kind, job.request_id):
+                return service.run(job)
+
+        queue = queue_factory(run, job_event)
         app.state.queue = queue
         try:
             yield
@@ -139,6 +147,7 @@ def create_app(
         auth=auth,
         limiter=limiter if limiter is not None else FixedWindow(),
         logger=log,
+        telemetry=telemetry,
         upload_bytes=limits.max_input_bytes,
     )
 
@@ -171,6 +180,14 @@ def create_app(
     @app.get(PREFIX + "/health")
     async def health() -> dict[str, str]:
         return {"status": "ok", "notice": RESEARCH_NOTICE}
+
+    if expose_metrics:
+
+        @app.get("/internal/metrics", include_in_schema=False)
+        def internal_metrics() -> Response:
+            return Response(
+                telemetry.exposition(), headers={"Content-Type": CONTENT_TYPE_LATEST}
+            )
 
     @app.get(PREFIX + "/ready")
     def ready() -> JSONResponse:
@@ -216,15 +233,25 @@ def create_app(
         modality: Modality = Modality.UNKNOWN,
         role: Role = "image",
     ) -> Metadata:
+        content_types = request.headers.getlist("content-type")
+        encodings = request.headers.getlist("content-encoding")
         if (
-            request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+            len(content_types) != 1
+            or content_types[0].split(";", 1)[0].strip().lower()
             != "application/octet-stream"
-            or request.headers.get("content-encoding", "identity").lower() != "identity"
+            or (
+                encodings
+                and [value.strip().lower() for value in encodings] != ["identity"]
+            )
         ):
             raise APIError(
                 415,
                 "unsupported_media_type",
                 "Send raw NIfTI bytes as application/octet-stream.",
+            )
+        if request.headers.getlist("x-deidentified-research") != ["true"]:
+            raise APIError(
+                422, "invalid_attestation", "Provide one research attestation."
             )
         with io.BytesIO() as stream:
             try:

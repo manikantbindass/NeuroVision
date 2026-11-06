@@ -135,7 +135,8 @@ def load_dicom_series(
     ordered, affine, modality = _geometry(slices)
     planes = []
     for item in ordered:
-        assert item.pixels is not None
+        if item.pixels is None:
+            raise ImagingError("DICOM slice has no decoded pixels")
         planes.append(item.pixels.T)
     return canonical_volume(
         np.stack(planes, axis=2),

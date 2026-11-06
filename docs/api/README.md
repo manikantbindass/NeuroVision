@@ -34,6 +34,8 @@ Interactive docs are at `/docs`, with the schema at `/api/v1/openapi.json`. Heal
 
 The upload body is raw `.nii` or `.nii.gz` bytes with `Content-Type: application/octet-stream`. Choose `format=nii` or `format=nii.gz` and provide `X-Deidentified-Research: true` after authorized upstream de-identification and review. Set `role=labels` for an atlas or reference segmentation. The header is an attestation. The service does not de-identify pixel data. Upload only reviewed data permitted for the research purpose. The API does not accept DICOM, archives, file paths, or checkpoint uploads. It retains decoded arrays and limited imaging metadata in the local store, and discards the original upload container.
 
+Send a single Authorization, Content-Type and attestation header. Send the declared NIfTI container directly, without HTTP content encoding. The upload filename is ignored. Review the [threat model and retention guidance](../architecture/THREAT_MODEL.md) before importing research data.
+
 ```sh
 curl -X POST 'http://127.0.0.1:8000/api/v1/scans?format=nii&modality=t1' \
   -H "Authorization: Bearer $NEUROVISION_API_TOKEN" \

@@ -10,6 +10,8 @@ NeuroVision-2028 is a research platform under development for reproducible brain
 
 The foundation provides shared pipeline contracts, validated runtime settings, structured logs, reproducible Python random streams, and a CLI that lists the reference stages. The optional MRI engine loads NIfTI and reviewed DICOM locally and validates dataset manifests. [Architecture](docs/development/ARCHITECTURE.md) · [Phase status](docs/development/PHASE_STATUS.md) · [Changelog](CHANGELOG.md)
 
+Use synthetic inputs for development, tests and demonstrations. Review the privacy and security requirements before importing research imaging or exposing a deployment. [Threat model and imaging review](docs/architecture/THREAT_MODEL.md) · [Quality gates](docs/development/QUALITY.md)
+
 The preprocessing engine adds configurable transforms, provenance, and QC. Trainable 2D and 3D U-Net baselines include reproducible synthetic examples. The next phases cover benchmarking, measurements and research reports, then the API, worker, and viewer. [Preprocessing guide](docs/development/PREPROCESSING.md) · [Baseline training guide](docs/development/BASELINE_TRAINING.md) · [Capability roadmap](docs/development/CAPABILITIES.md)
 
 The optional model zoo integrates SegResNet, Attention U-Net, UNETR, and Swin UNETR with the training loop and a tensor inference engine. [Model zoo guide](docs/research/MODEL_ZOO.md)

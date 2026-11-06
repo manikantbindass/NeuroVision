@@ -62,7 +62,7 @@ def create_app() -> FastAPI:
     if token_file:
         from apps.api.adapters import BearerTokens
 
-        auth = BearerTokens({Path(token_file).read_text().strip(): "local-research"})
+        auth = BearerTokens({setting("NEUROVISION_API_TOKEN"): "local-research"})
     else:
         auth = None
 
@@ -78,6 +78,7 @@ def create_app() -> FastAPI:
         limiter=RedisRateLimiter(redis),
         queue_factory=lambda run, event: SQLJobs(database),
         readiness=ready,
+        expose_metrics=True,
     )
     return app
 

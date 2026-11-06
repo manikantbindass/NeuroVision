@@ -20,7 +20,7 @@ bias = ["SimpleITK>=2.5.3,<3"]
 # PyTorch's CPU wheel declares setuptools as a runtime dependency.
 training = ["torch>=2.8,<3", "scipy>=1.15,<2", "setuptools>=84.1"]
 zoo = ["monai==1.6.1", "einops>=0.8,<1", "torch>=2.8,<3", "setuptools>=84.1"]
-api = ["fastapi>=0.115,<1", "pydantic>=2.9,<3", "uvicorn>=0.34,<1"]
+api = ["fastapi>=0.115,<1", "pydantic>=2.9,<3", "uvicorn>=0.34,<1", "prometheus-client>=0.22,<1", "opentelemetry-api>=1.36,<2"]
 api-test = ["httpx>=0.28,<1"]
 pdf = ["reportlab>=4.4,<5"]
 report-test = ["pypdf>=6,<7"]
@@ -42,6 +42,14 @@ namespaces = false
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.coverage.run]
+branch = true
+source = ["neurovision", "apps.api"]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true
 
 [tool.mypy]
 python_version = "3.11"

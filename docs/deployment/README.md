@@ -74,7 +74,7 @@ Prefer image digests for reviewed deployments. Configure image pull secrets thro
 
 For TLS ingress, install the chosen ingress controller, provide the certificate secret, set `ingress.enabled=true` and supply your host. An AWS Load Balancer Controller deployment requires its IAM permissions and ingress class/annotations. The chart provides ingress routing through the frontend, not the controller itself.
 
-API pods use liveness, startup and dependency-aware readiness probes. Worker readiness reflects successful queue polling or lease renewal. Network policies restrict runtime traffic to the frontend/API path, database, Redis and DNS, with monitoring access on the worker port. Verify that the cluster's network plugin enforces these policies.
+API pods use liveness, startup and dependency-aware readiness probes. Worker readiness reflects successful queue polling or lease renewal. Network policies restrict runtime traffic to the frontend/API path, database, Redis and DNS, with monitoring access on the API and worker ports from the monitoring namespace. Verify that the cluster's network plugin enforces these policies.
 
 The reference YAML in `deployment/kubernetes/workspace.yaml` is rendered from the Helm chart with ingress and API autoscaling enabled. Customize image references, domain and secret references before applying it with `kubectl -n neurovision apply -k deployment/kubernetes`. Prefer Helm for upgrades because its schema-job hook handles replacement.
 
@@ -98,6 +98,24 @@ terraform -chdir=deployment/terraform/aws validate
 No apply is part of this phase. Applying the configuration provisions chargeable AWS resources. Review an environment-specific plan, region support and quotas first. Protect Terraform state with an encrypted access-controlled remote backend because sensitive values can appear in state. Private nodes need approved egress or VPC endpoints for registry, DNS, database and AWS control-plane access.
 
 Connect from an authorized network to the private cluster. Bootstrap networking, Metrics Server, ingress/load-balancer controller and any GPU device plugin before deploying the chart. Populate Kubernetes credentials from approved secret management and rotate them under operational policy. S3 provisioning does not connect the current PostgreSQL artifact backend to S3. The storage interface is the extension point for that work. [EKS architecture](https://docs.aws.amazon.com/eks/latest/userguide/eks-architecture.html)
+
+## Private observability
+
+With Compose, enable the optional `monitoring` profile and open Prometheus on the loopback address at port 9090. The collector scrapes the API at `/internal/metrics` and the worker at `/metrics` on the internal service network. The frontend blocks the internal API metrics route. In Kubernetes, scrape individual pods through private monitoring discovery for correct per-replica counters. Protect the monitoring namespace, ingress, logs and exporter credentials under the deployment's access policy.
+
+| Signal | Prometheus series |
+| --- | --- |
+| Request throughput and error rate | `neurovision_http_requests_total`, grouped by route template and status class |
+| Request latency | `neurovision_http_request_duration_seconds_bucket` |
+| Worker utilization and retained job counts | `neurovision_worker_active`, `neurovision_jobs` |
+| Job executions and failures | `neurovision_job_executions_total`, grouped by kind and outcome |
+| Inference job execution latency | `neurovision_job_execution_duration_seconds_bucket{kind="inference"}` |
+
+Use `rate` on counters and aggregate histogram buckets before calculating percentiles. Inference timing covers job execution, including reading and persisting artifacts, and excludes queue wait. Job counters describe execution attempts, while database gauges describe retained jobs. Scraping multiple worker replicas repeats the shared database counts. [Prometheus histogram documentation](https://prometheus.github.io/client_python/instrumenting/histogram/)
+
+Collect CPU usage and memory from kubelet or the platform container metrics service. For GPU nodes, configure NVIDIA DCGM Exporter to collect utilization and device memory. Join by deployment or node labels and display in Grafana or the platform dashboard. Metrics Server supports the HPA and does not replace a historical metrics backend. The chart leaves node and GPU exporters to the operator.
+
+OpenTelemetry hooks emit request and job spans if the process initializes an SDK tracer provider before serving. The repository does not configure a collector or export spans by default. Asynchronous jobs correlate with their originating request through the generated request ID in structured events and spans. Keep automatic body, header, SQL parameter and raw URL capture disabled. Retain audit logs according to the [threat model](../architecture/THREAT_MODEL.md), and disable edge access logging or configure it to omit raw URLs and credentials. Apply TLS and a reviewed HSTS policy at the edge for the chosen deployment.
 
 ## Validation boundary
 

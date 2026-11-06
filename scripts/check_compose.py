@@ -70,4 +70,10 @@ if result["status"] != "succeeded":
 prediction = request(result["result_url"])
 if prediction["label_voxels"] != [32, 32]:
     raise RuntimeError("Synthetic inference returned unexpected labels")
+try:
+    with urllib.request.urlopen(args.base + "/internal/metrics", timeout=5):
+        raise RuntimeError("The frontend unexpectedly exposes internal metrics")
+except urllib.error.HTTPError as exc:
+    if exc.code != 404:
+        raise
 print("Compose API, shared database, worker and frontend proxy smoke test passed.")

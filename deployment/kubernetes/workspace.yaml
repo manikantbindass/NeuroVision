@@ -15,7 +15,7 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels: {kubernetes.io/metadata.name: monitoring}
-      ports: [{port: 9000, protocol: TCP}]
+      ports: [{port: 9000, protocol: TCP}, {port: 8000, protocol: TCP}]
     - ports: [{port: 8080, protocol: TCP}]
   egress:
     - to:
@@ -305,6 +305,7 @@ metadata:
   name: neurovision
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
 spec:
   ingressClassName: nginx
   tls:
