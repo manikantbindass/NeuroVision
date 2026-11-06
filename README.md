@@ -1,4 +1,4 @@
-<img src="assets/animations/neurovision-header.gif" alt="NeuroVision animated MRI scan banner" width="100%">
+<img src="assets/animations/neurovision-header.gif" alt="NeuroVision-2028 scan animation. Prepare MRI, segment, inspect uncertainty, map and report." width="100%">
 
 <img src="assets/branding/neurovision.svg" width="64" height="64" alt="NeuroVision logo">
 
@@ -79,6 +79,10 @@ The factory, registry, checkpoint manager and tensor inference engine share expl
 | Research reporting | JSON and HTML exports plus optional PDF. Reports capture scan geometry, preprocessing, QC, model version, classes, volumes, confidence, limitations and reproducibility details. Evaluation requires ground truth. |
 
 [Ensembles and uncertainty](docs/research/ENSEMBLE_INTELLIGENCE.md) · [Atlas mapping and attribution](docs/research/NEUROMAP.md) · [Longitudinal comparison](docs/research/NEUROTIMELINE.md) · [Report fields and exports](docs/research/REPORTING.md)
+
+<img src="assets/diagrams/neuroconfidence.svg" width="900" alt="Aligned model probabilities feed a weighted mean, from which NeuroConfidence derives the segmentation, maximum confidence and entropy. Member predictions also provide disagreement.">
+
+Confidence and entropy describe the combined probabilities. Disagreement describes how members vote. A confident or unanimous result can still be wrong.
 
 ## Synthetic demo
 
@@ -183,6 +187,23 @@ python -m uvicorn apps.api.main:create_app --factory --host 127.0.0.1 --port 800
 
 Open [local OpenAPI docs](http://127.0.0.1:8000/docs). In the web app, enter the token under **System / Models**. The API accepts reviewed NIfTI, queues preprocessing, inference, metrics, maps and reports, and serves owner-scoped results and exports. Poll `/api/v1/jobs/{id}` for completion. Public probes are `/api/v1/health` and `/api/v1/ready`. [Routes and upload contract](docs/api/README.md)
 
+```mermaid
+sequenceDiagram
+    participant Client as Research client
+    participant API as FastAPI
+    participant DB as Job and artifact store
+    participant Worker as Research worker
+    Client->>API: Upload reviewed NIfTI
+    API->>DB: Store canonical volume under owner
+    Client->>API: Submit inference
+    API->>DB: Create queued job
+    API-->>Client: Return job ID
+    Worker->>DB: Claim lease and read volume
+    Worker->>DB: Publish result and terminal status
+    Client->>API: Poll job and fetch result
+    API-->>Client: Return owner-scoped artifacts
+```
+
 ## Deployment
 
 - **Docker Compose** provisions the frontend, API, inference worker, PostgreSQL and Redis. Generate local secrets and start the stack.
@@ -221,6 +242,16 @@ For a benchmark, record dataset version, patient-level splits, preprocessing, cl
 
 Versioned recipes and explicit seeds support synthetic replay. Artifacts can record dataset and configuration fingerprints, preprocessing, hyperparameters, metrics, Git revision and environment versions. Optional MLflow tracking and registry adapters capture runs and version artifacts. The DVC-compatible synthetic workflow demonstrates data versioning without redistributing restricted scans. [MLOps guide](docs/development/MLOPS.md)
 
+```mermaid
+flowchart LR
+    Data["Dataset fingerprint + split"] --> Run["Seeded training run"]
+    Config["Versioned recipe + environment"] --> Run
+    Run --> Evidence["Metrics + provenance"]
+    Run --> Checkpoint["Checkpoint + model card"]
+    Evidence -. optional .-> Tracking["MLflow tracking"]
+    Checkpoint -. optional .-> Registry["Artifact registry"]
+```
+
 ## Security, privacy and ethics
 
 Use synthetic data in development, CI and issue reports. Keep real patient data, identifiers, credentials, raw scans and private model artifacts out of Git. Review DICOM tags, private elements, burned-in text and recognizable anatomy before import. NIfTI voxels and derivatives can still expose sensitive information after header removal. Follow approved access, retention and deletion policies. Clinical suitability, fairness across populations and robustness across scanners have yet to be established.
@@ -249,4 +280,8 @@ Use synthetic fixtures and run the applicable quality checks before opening a PR
 
 The repository is maintained by [manikantbindass](https://github.com/manikantbindass) and [NeuroVision contributors](https://github.com/manikantbindass/NeuroVision/graphs/contributors). Thanks to the imaging, ML and open-source communities behind NiBabel, pydicom, PyTorch, MONAI, FastAPI and React.
 
-<img src="assets/animations/neurovision-footer.gif" alt="Animated research flow from MRI through segmentation and quantification to a research report" width="100%">
+### Continuous integration
+
+Pull requests run Python formatting, lint, type checks, CPU model and API tests, frontend lint and build, browser tests, and a synthetic Compose workflow. Deployment checks validate Helm and Terraform. Security checks scan dependencies and Git history and reject common medical image extensions from the index. The documentation job checks local README links, diagram SVGs and animation placement. GPU training is outside the pull request workflow. [CI workflow](.github/workflows/ci.yml) · [Deployment checks](.github/workflows/deployment.yml) · [Security checks](.github/workflows/security.yml)
+
+<img src="assets/animations/neurovision-footer.gif" alt="Animated research workflow. MRI geometry and QC lead to labels and probabilities, then confidence and entropy, regional volume and change, and a report with provenance and limits." width="100%">

@@ -4,6 +4,7 @@
 
 - Document the research workflow, setup across supported shells, synthetic demo, deployment, and validation boundaries in the main README.
 - Add compact repository-hosted banner animations and a synthetic workspace screenshot.
+- Explain inference, MLOps, and confidence in README diagrams and validate documentation assets in CI.
 
 - Harden upload headers, auth ambiguity checks, privacy-preserving audit events, and proxy security policies.
 - Add private HTTP and job metrics, tracing hooks, medical data safeguards, dependency and secret scans, and a Python coverage gate.

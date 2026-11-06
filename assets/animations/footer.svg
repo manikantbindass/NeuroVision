@@ -1,18 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 90" role="img" aria-labelledby="title">
-  <title id="title">Animated flow from MRI to structured research report</title>
-  <rect width="960" height="90" rx="16" fill="#0a1527"/>
-  <path d="M110 54h740" fill="none" stroke="#427287" stroke-width="2"/>
-  <g fill="#a5e7ef" font-family="system-ui, sans-serif" font-size="17" text-anchor="middle">
-    <text x="110" y="35">MRI</text>
-    <text x="345" y="35">Segmentation</text>
-    <text x="600" y="35">Quantification</text>
-    <text x="850" y="35">Research report</text>
-    <circle cx="110" cy="54" r="4"/>
-    <circle cx="345" cy="54" r="4"/>
-    <circle cx="600" cy="54" r="4"/>
-    <circle cx="850" cy="54" r="4"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 142" role="img" aria-labelledby="title">
+  <title id="title">Research workflow from quality control through segmentation, mapping and reporting</title>
+  <rect width="960" height="142" rx="16" fill="#0a1527"/>
+  <g fill="#a5e7ef" font-family="system-ui,sans-serif" text-anchor="middle">
+    <text x="480" y="26" font-size="14" font-weight="600" letter-spacing="2">THE RESEARCH WORKFLOW</text>
+    <path d="M103 88H857" fill="none" stroke="#427287" stroke-width="2"/>
+    <g fill="#e4f4f8" font-size="16">
+      <text x="103" y="65">MRI + QC</text>
+      <text x="292" y="65">Segmentation</text>
+      <text x="480" y="65">Uncertainty</text>
+      <text x="668" y="65">Regional mapping</text>
+      <text x="857" y="65">Research report</text>
+    </g>
+    <g fill="#88b9c8" font-size="12">
+      <text x="103" y="115">Geometry + checks</text>
+      <text x="292" y="115">Labels + probabilities</text>
+      <text x="480" y="115">Confidence + entropy</text>
+      <text x="668" y="115">Volume + change</text>
+      <text x="857" y="115">Provenance + limits</text>
+    </g>
+    <circle cx="103" cy="88" r="4"/><circle cx="292" cy="88" r="4"/>
+    <circle cx="480" cy="88" r="4"/><circle cx="668" cy="88" r="4"/>
+    <circle cx="857" cy="88" r="4"/>
   </g>
-  <circle cx="110" cy="54" r="6" fill="#58dce6">
-    <animate attributeName="cx" values="110;850" dur="8s" repeatCount="indefinite"/>
+  <circle cx="103" cy="88" r="7" fill="#58dce6">
+    <animate attributeName="cx" values="103;103;292;292;480;480;668;668;857;857"
+      keyTimes="0;.08;.2;.28;.4;.48;.6;.68;.8;1" dur="8s" repeatCount="indefinite"/>
   </circle>
 </svg>
