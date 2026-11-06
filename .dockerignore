@@ -18,6 +18,8 @@
 !neurovision/training/*.py
 !neurovision/evaluation/
 !neurovision/evaluation/*.py
+!neurovision/inference/
+!neurovision/inference/*.py
 !deployment/
 !deployment/docker/
 !deployment/docker/Dockerfile

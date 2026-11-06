@@ -2,8 +2,9 @@ PYTHON ?= python
 
 .PHONY: install hooks lint format typecheck test smoke check container
 install:
+	$(PYTHON) -m pip install --upgrade pip
 	$(PYTHON) -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
-	$(PYTHON) -m pip install ".[dev,imaging,preprocessing,bias,training]"
+	$(PYTHON) -m pip install ".[dev,imaging,preprocessing,bias,training,zoo]"
 
 hooks:
 	$(PYTHON) -m pre_commit install

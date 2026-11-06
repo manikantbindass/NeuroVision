@@ -20,11 +20,11 @@ from torch.utils.data import DataLoader, Dataset
 
 from neurovision.core.pipeline import RESEARCH_NOTICE
 from neurovision.evaluation.segmentation import segmentation_metrics
-from neurovision.models.unet import UNet
+from neurovision.models.base import BaseSegmentationModel
+from neurovision.models.checkpoints import CheckpointManager
+from neurovision.models.factory import ModelFactory, MonaiSegmentationModel
 from neurovision.training.checkpoints import (
     TrainingError,
-    load_checkpoint,
-    save_checkpoint,
     save_history,
 )
 from neurovision.training.config import AugmentationConfig, ExperimentConfig
@@ -45,7 +45,7 @@ class EpochResult:
 
 @dataclass(frozen=True, slots=True)
 class FitResult:
-    model: UNet
+    model: BaseSegmentationModel
     history: tuple[EpochResult, ...]
     best_epoch: int
     stopped_early: bool
@@ -155,7 +155,7 @@ class _Metrics:
 
 def _epoch(
     loader: DataLoader[Batch],
-    model: UNet,
+    model: BaseSegmentationModel,
     loss_fn: SegmentationLoss,
     config: ExperimentConfig,
     device: torch.device,
@@ -223,12 +223,12 @@ def _epoch(
 def _resume_state(
     checkpoint: Path,
     run: dict[str, Any],
-    model: UNet,
+    model: BaseSegmentationModel,
     optimizer: AdamW,
     scheduler: ReduceLROnPlateau,
     scaler: torch.amp.GradScaler,
 ) -> tuple[list[EpochResult], float, int, int]:
-    state = load_checkpoint(checkpoint)
+    state = CheckpointManager.load_training(checkpoint)
     if state.get("run") != run:
         raise TrainingError(
             "Checkpoint data, environment, or experiment configuration differs"
@@ -265,6 +265,7 @@ def fit(
     output: Path,
     data_id: str,
     resume: bool = False,
+    factory: ModelFactory | None = None,
 ) -> FitResult:
     """Train on finite CPU tensors and checkpoint at complete epoch boundaries."""
     if not data_id.strip() or len(data_id) > 256:
@@ -286,7 +287,9 @@ def fit(
     settings = config.training
     device = _device(config)
     _seed(settings.seed)
-    model = UNet(config.model).to(device)
+    model = (
+        (ModelFactory() if factory is None else factory).create(config.model).to(device)
+    )
     loss_fn = SegmentationLoss(config.loss)
     optimizer = AdamW(model.parameters(), lr=settings.learning_rate)
     scheduler = ReduceLROnPlateau(
@@ -302,10 +305,14 @@ def fit(
     recipe["training"].pop("epochs")
     run = {
         "trainer_revision": 1,
+        "model_definition": asdict(model.model_config),
         "data_id": data_id,
         "recipe": recipe,
         "torch": str(torch.__version__),
         "numpy": np.__version__,
+        "monai": version("monai")
+        if isinstance(model, MonaiSegmentationModel)
+        else None,
         "scipy": version("scipy"),
         "python": platform.python_version(),
         "platform": platform.platform(),
@@ -364,8 +371,8 @@ def fit(
             "scaler": scaler.state_dict(),
         }
         if improved:
-            save_checkpoint(output / "best.pt", state)
-        save_checkpoint(output / "last.pt", state)
+            CheckpointManager.save_training(output / "best.pt", state)
+        CheckpointManager.save_training(output / "last.pt", state)
     stopped = stagnant >= settings.early_stopping_patience
     save_history(
         output / "history.json",
