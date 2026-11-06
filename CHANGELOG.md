@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add fixed-ROI gradient saliency and bounded patch occlusion for segmentation experiments.
+- Add NeuroMap atlas overlap, physical volumes, hemisphere annotations, confidence summaries, and a local comparison report.
+
 - Add weighted ensemble probability reduction, reversible flip TTA, model disagreement, and supported Monte Carlo dropout sampling.
 - Add predictive entropy, probability variance, voxel confidence maps, and the interactive local NeuroConfidence research viewer.
 

@@ -21,6 +21,7 @@ def evaluation_mode(
     model: BaseSegmentationModel,
     *,
     mc_dropout: bool = False,
+    gradients: bool = False,
 ) -> Iterator[None]:
     states = [(module, module.training) for module in model.modules()]
     dropout = [
@@ -46,7 +47,7 @@ def evaluation_mode(
         if mc_dropout:
             for module in dropout:
                 module.train(True)
-        with torch.inference_mode():
+        with nullcontext() if gradients else torch.inference_mode():
             yield
     finally:
         for saved_module, saved_training in states:

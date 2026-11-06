@@ -11,7 +11,8 @@
 | `neurovision/models`, `neurovision/training`, `neurovision/evaluation` | Native U-Nets, the MONAI model zoo, architecture and checkpoint management, training, profiling, and metrics. |
 | `neurovision/inference` | Full-grid and sliding-window inference, weighted ensembles, and reversible TTA. |
 | `neurovision/uncertainty` | Weighted probability statistics, confidence maps, and a local interactive viewer. |
-| `neurovision/explainability`, `mapping`, `longitudinal`, `reporting` | Reserved for further research analysis and report generation. |
+| `neurovision/explainability`, `mapping` | Fixed-target segmentation sensitivity, registered atlas overlaps, and local comparison reports. |
+| `neurovision/longitudinal`, `reporting` | Reserved for longitudinal analysis and structured report generation. |
 | `configs`, `scripts`, `tests`, `notebooks`, `examples` | Configuration, developer utilities, tests, and synthetic examples. |
 | `docs/` | Architecture, research, API, deployment, development, presentations, and reports. |
 | `assets/` | README animations and reserved diagrams, screenshots, and branding. |

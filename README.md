@@ -16,6 +16,8 @@ The optional model zoo integrates SegResNet, Attention U-Net, UNETR, and Swin UN
 
 Ensemble experiments add weighted probability averaging, reversible flip TTA, model disagreement, predictive entropy, variance, and supported MC dropout sampling. The local NeuroConfidence viewer distinguishes threshold-based high-confidence predictions from low-confidence or uncertain predictions. [Ensemble and confidence guide](docs/research/ENSEMBLE_INTELLIGENCE.md)
 
+NeuroMap measures segmented volumes and overlaps with registered local atlases. The comparison report shows the MRI, labels, aligned atlas, gradient saliency, and patch occlusion side by side. Run `python -m neurovision.mapping.example --output artifacts/neuromap-synthetic/comparison.html` after setup for a synthetic demonstration. [NeuroMap research guide](docs/research/NEUROMAP.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup
