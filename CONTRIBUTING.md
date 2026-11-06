@@ -16,10 +16,12 @@ python -m ruff check neurovision tests
 python -m ruff format --check neurovision tests
 python -m mypy
 python -m unittest discover -s tests -v
+python -m neurovision.uncertainty.example --output artifacts/neuroconfidence-synthetic
+node tests/check_neuroconfidence.cjs artifacts/neuroconfidence-synthetic/neuroconfidence.html
 python -m pip check
 python -m neurovision
 ```
 
-With GNU Make, run `make install`, `make hooks`, and `make check`. Set `PYTHON` to the environment's interpreter if it is outside your shell path. The hooks use the active shell's Python so they run the same tool versions as the developer commands and CI.
+With GNU Make, run `make install`, `make hooks`, and `make check`. Run `make viewer-test` for the offline JavaScript viewer checks, which require Node.js 24 or later. Set `PYTHON` to the environment's interpreter if it is outside your shell path. The hooks use the active shell's Python so they run the same tool versions as the developer commands and CI.
 
 Use synthetic data for tests. Document any new dependency, format assumptions, geometry conventions and validation limits. Update the changelog and phase status when completing a phase. Follow the [code of conduct](CODE_OF_CONDUCT.md) and report security issues using the [security policy](SECURITY.md).

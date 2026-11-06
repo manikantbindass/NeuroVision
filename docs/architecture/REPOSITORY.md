@@ -9,8 +9,9 @@
 | `neurovision/imaging`, `neurovision/datasets` | Local MRI readers, canonical volume contracts, and dataset manifests or adapters. |
 | `neurovision/preprocessing` | Configurable transforms, provenance and caching, registration adapters, QC reports, and slice montages. |
 | `neurovision/models`, `neurovision/training`, `neurovision/evaluation` | Native U-Nets, the MONAI model zoo, architecture and checkpoint management, training, profiling, and metrics. |
-| `neurovision/inference` | Full-grid and sliding-window tensor inference. |
-| `neurovision/uncertainty`, `explainability`, `mapping`, `longitudinal`, `reporting` | Reserved for research analysis and report generation. |
+| `neurovision/inference` | Full-grid and sliding-window inference, weighted ensembles, and reversible TTA. |
+| `neurovision/uncertainty` | Weighted probability statistics, confidence maps, and a local interactive viewer. |
+| `neurovision/explainability`, `mapping`, `longitudinal`, `reporting` | Reserved for further research analysis and report generation. |
 | `configs`, `scripts`, `tests`, `notebooks`, `examples` | Configuration, developer utilities, tests, and synthetic examples. |
 | `docs/` | Architecture, research, API, deployment, development, presentations, and reports. |
 | `assets/` | README animations and reserved diagrams, screenshots, and branding. |

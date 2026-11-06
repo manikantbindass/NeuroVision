@@ -8,4 +8,6 @@ The baselines accept explicitly ordered channels on a common physical grid and p
 
 The model zoo provides explicit architecture configurations, tensor input contracts, a factory and registry, checkpoint reconstruction, and local inference. Backend-specific input-size and normalization constraints apply. [Model zoo comparison guide](docs/research/MODEL_ZOO.md)
 
+Ensemble uncertainty statistics and confidence categories are experimental research outputs. Their calibration and association with MRI segmentation errors have not been established. The NeuroConfidence demo uses analytic probability phantoms. [Ensemble intelligence guide](docs/research/ENSEMBLE_INTELLIGENCE.md)
+
 Results can be affected by sequence selection, scan quality, label mapping, spacing, preprocessing, class imbalance, domain shift, and slice or patch selection. Assess each model on a documented subject-level split, retain checkpoint provenance, and report the metric conventions with the results. [Baseline training guide](docs/development/BASELINE_TRAINING.md)

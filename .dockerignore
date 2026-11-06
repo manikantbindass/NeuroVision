@@ -20,6 +20,9 @@
 !neurovision/evaluation/*.py
 !neurovision/inference/
 !neurovision/inference/*.py
+!neurovision/uncertainty/
+!neurovision/uncertainty/*.py
+!neurovision/uncertainty/*.html
 !deployment/
 !deployment/docker/
 !deployment/docker/Dockerfile
