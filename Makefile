@@ -2,7 +2,7 @@ PYTHON ?= python
 
 .PHONY: install hooks lint format typecheck test smoke check container
 install:
-	$(PYTHON) -m pip install ".[dev,imaging]"
+	$(PYTHON) -m pip install ".[dev,imaging,preprocessing,bias]"
 
 hooks:
 	$(PYTHON) -m pre_commit install

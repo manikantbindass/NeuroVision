@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add reproducible preprocessing recipes, optional N4 bias correction, affine registration and brain-mask adapters, and bounded caching.
+- Record per-step provenance and generate configurable QC reports and visual slice montages.
+
 - Add bounded NIfTI and privacy-gated DICOM ingestion, canonical RAS volumes, dataset manifests and validation, and a local BraTS 2021 adapter.
 
 - Add validated environment settings, JSON CLI logs, isolated seeded random streams, and shared application exceptions.

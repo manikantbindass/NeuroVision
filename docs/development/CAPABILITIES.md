@@ -2,14 +2,14 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
-**Available today:** the foundation CLI and [local MRI data engine](IMAGING.md). A research experiment earns an **Experimental** label only when it can run end to end with documented inputs, constraints, and validation results. An interface without a runnable implementation is a **Stub**. The current CLI displays stage names.
+**Available today:** the foundation CLI, [local MRI data engine](IMAGING.md), and [preprocessing and QC](PREPROCESSING.md). A research experiment earns an **Experimental** label only when it can run end to end with documented inputs, constraints, and validation results. An interface without a runnable implementation is a **Stub**. The current CLI displays stage names.
 
 | Capability | Status | Boundary and evidence required before enabling |
 | --- | --- | --- |
 | NIfTI MRI and T1, T1ce, T2, FLAIR | Available locally | Bounded NIfTI-1 and NIfTI-2 decoding validates dimensions, scalar datatype, finite intensities and physical geometry. Modalities are explicit or unknown. |
 | Multimodal MRI | Manifest validation available | Check required sequences and a shared grid for each case. Model channel order and registration are planned. |
 | DICOM ingestion | Available locally, privacy gated | Load reviewed, classic uncompressed MR series from a trusted staging directory. Public uploads require a separate design and privacy review. |
-| Skull stripping, bias-field correction, normalization, resampling, registration and automatic QC | Planned | Make each operation configurable. Record transform direction, interpolation and reference grid. Test with known synthetic transforms, separate intensity and label interpolation, and block processing on failed QC. |
+| Skull stripping, bias-field correction, normalization, resampling, registration and automatic QC | Local transforms and adapters available | Normalize, resample, run optional N4, apply external brain masks and affine registration, and review QC reports. Automatic brain mask and registration estimation are deferred. [Preprocessing guide](PREPROCESSING.md) |
 | 2D, 3D and multi-class segmentation for anatomy and lesion or tumor experiments | Planned | Keep anatomy and lesion label schemas distinct. Compare a small 2D U-Net and a 3D baseline under the same subject-level split, using per-class overlap and surface metrics with documented empty-mask handling. |
 | Ensemble inference, uncertainty, calibration and explainability | Planned research experiments | Combine only predictions with compatible labels and grids. Report the uncertainty method, assess calibration on held-out subjects, and test attributions against model or input perturbations. |
 | Volumetry, hemisphere analysis and atlas mapping | Planned | Calculate physical volumes from validated geometry, preserve units and atlas versions, and verify left/right with asymmetric phantoms. Require QC before reporting measurements derived from an atlas transform. |

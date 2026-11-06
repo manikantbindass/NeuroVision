@@ -57,3 +57,5 @@ The reference flow starts with an MRI volume and ends with a structured research
 Future stage implementations should define concrete artifact contracts before joining a workflow. MRI artifacts should carry axis and coordinate conventions, spacing, transforms, and label schema where applicable. Experiment records should capture configuration, software and model versions, and QC outcomes. API and web layers should consume these artifacts and show the research notice on relevant screens and exports.
 
 The [local ingestion library](IMAGING.md) produces a canonical MRI volume after validation and orientation handling. Its DICOM boundary requires trusted prior review of identifiers in filenames, metadata and pixels. Tests and demos use synthetic data. The stage catalog CLI has no image input.
+
+The [preprocessing stage](PREPROCESSING.md) implements the shared component contract for one canonical MRI volume. Its ordered transforms return a processed volume, geometry and seed provenance, and a QC report. Case-level QC checks modality completeness before per-volume processing.

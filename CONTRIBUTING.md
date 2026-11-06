@@ -7,7 +7,7 @@ Read the [repository map](docs/architecture/REPOSITORY.md) and [phase status](do
 Follow the virtual environment setup in the [README](README.md) and activate the environment in your shell before installing or running Git hooks. Run these commands with that environment's Python:
 
 ```text
-python -m pip install ".[dev,imaging]"
+python -m pip install ".[dev,imaging,preprocessing,bias]"
 python -m pre_commit install
 python -m pre_commit run --all-files
 python -m ruff check neurovision tests
