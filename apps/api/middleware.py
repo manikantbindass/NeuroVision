@@ -61,6 +61,7 @@ class RequestBoundary:
             path = path[len(root) :]
         protected = path.startswith("/api/v1/") and path not in {
             "/api/v1/health",
+            "/api/v1/ready",
             "/api/v1/openapi.json",
         }
         incoming = Headers(scope=scope)
@@ -149,6 +150,10 @@ class RequestBoundary:
                 return message
 
             await self.app(scope, bounded_receive, send_response)
+        except APIError as exc:
+            if started:
+                raise
+            await reject(exc)
         except Exception as exc:
             if started:
                 raise

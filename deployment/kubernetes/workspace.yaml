@@ -1,0 +1,364 @@
+---
+# Source: neurovision/templates/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: neurovision-runtime
+spec:
+  podSelector:
+    matchLabels: {app: neurovision}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - podSelector: {matchLabels: {app: neurovision, component: web}}
+      ports: [{port: 8000, protocol: TCP}]
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: monitoring}
+      ports: [{port: 9000, protocol: TCP}]
+    - ports: [{port: 8080, protocol: TCP}]
+  egress:
+    - to:
+        - podSelector: {matchLabels: {app: neurovision, component: api}}
+      ports: [{port: 8000, protocol: TCP}]
+    - ports: [{port: 53, protocol: UDP}, {port: 53, protocol: TCP}]
+    - ports: [{port: 5432, protocol: TCP}, {port: 6379, protocol: TCP}]
+---
+# Source: neurovision/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neurovision-config
+data:
+  NEUROVISION_WORKER_DEVICE: "cpu"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+---
+# Source: neurovision/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+spec:
+  selector: {app: neurovision, component: api}
+  ports: [{name: http, port: 8000, targetPort: http}]
+---
+# Source: neurovision/templates/services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec:
+  selector: {app: neurovision, component: web}
+  ports: [{name: http, port: 8080, targetPort: http}]
+---
+# Source: neurovision/templates/workloads.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neurovision-api
+  labels:
+    app.kubernetes.io/name: neurovision
+    app.kubernetes.io/component: api
+spec:
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+  selector:
+    matchLabels: {app: neurovision, component: api}
+  template:
+    metadata:
+      labels: {app: neurovision, component: api}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: api
+          image: "neurovision-api:local"
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef: {name: neurovision-config}
+          env:
+            - name: NEUROVISION_DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: neurovision-runtime, key: database-url}
+            - name: NEUROVISION_REDIS_URL
+              valueFrom:
+                secretKeyRef: {name: neurovision-runtime, key: redis-url}
+            - name: NEUROVISION_API_TOKEN
+              valueFrom:
+                secretKeyRef: {name: neurovision-runtime, key: api-token}
+          ports:
+            - name: http
+              containerPort: 8000
+          startupProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /api/v1/ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 4
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: 250m
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: temporary, mountPath: /tmp}
+      volumes:
+        - name: temporary
+          emptyDir: {sizeLimit: 256Mi}
+---
+# Source: neurovision/templates/workloads.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neurovision-worker
+  labels:
+    app.kubernetes.io/name: neurovision
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: {app: neurovision, component: worker}
+  template:
+    metadata:
+      labels: {app: neurovision, component: worker}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9000"
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: worker
+          image: "neurovision-api:local"
+          imagePullPolicy: IfNotPresent
+          command: [python, -m, apps.api.worker]
+          envFrom:
+            - configMapRef: {name: neurovision-config}
+          env:
+            - name: NEUROVISION_DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: neurovision-runtime, key: database-url}
+          ports:
+            - name: http
+              containerPort: 9000
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 4
+          resources:
+            limits:
+              cpu: "2"
+              memory: 4Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: temporary, mountPath: /tmp}
+      volumes:
+        - name: temporary
+          emptyDir: {sizeLimit: 256Mi}
+---
+# Source: neurovision/templates/workloads.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neurovision-web
+  labels:
+    app.kubernetes.io/name: neurovision
+    app.kubernetes.io/component: web
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+  selector:
+    matchLabels: {app: neurovision, component: web}
+  template:
+    metadata:
+      labels: {app: neurovision, component: web}
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: web
+          image: "neurovision-web:local"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 4
+          resources:
+            limits:
+              cpu: 250m
+              memory: 128Mi
+            requests:
+              cpu: 50m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: temporary, mountPath: /tmp}
+      volumes:
+        - name: temporary
+          emptyDir: {sizeLimit: 256Mi}
+---
+# Source: neurovision/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: neurovision-api
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: neurovision-api}
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 70}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies: [{type: Pods, value: 1, periodSeconds: 60}]
+---
+# Source: neurovision/templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: neurovision
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["neurovision.example.org"]
+      secretName: neurovision-tls
+  rules:
+    - host: "neurovision.example.org"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port: {number: 8080}
+---
+# Source: neurovision/templates/schema-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neurovision-schema
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 4
+  template:
+    metadata:
+      labels: {app: neurovision, component: schema}
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: schema
+          image: "neurovision-api:local"
+          imagePullPolicy: IfNotPresent
+          command: [python, -m, apps.api.deployed, init-db]
+          env:
+            - name: NEUROVISION_DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: neurovision-runtime, key: database-url}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts: [{name: temporary, mountPath: /tmp}]
+      volumes:
+        - name: temporary
+          emptyDir: {sizeLimit: 128Mi}

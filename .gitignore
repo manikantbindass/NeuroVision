@@ -21,6 +21,13 @@ dist/
 .dvc/cache/
 .dvc/tmp/
 .dvc/config.local
+/.secrets/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
 *.dcm
 *.dicom
 *.nii

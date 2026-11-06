@@ -26,6 +26,8 @@ pdf = ["reportlab>=4.4,<5"]
 report-test = ["pypdf>=6,<7"]
 mlops = ["mlflow-skinny>=3.5,<4", "sqlalchemy>=2,<3", "alembic>=1.16,<2"]
 dvc = ["dvc>=3.63,<4"]
+distributed = ["sqlalchemy>=2,<3", "psycopg[binary]>=3.2,<4", "redis>=5,<8"]
+distributed-test = ["fakeredis[lua]>=2.30,<3"]
 
 [project.scripts]
 neurovision = "neurovision.__main__:main"

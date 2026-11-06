@@ -25,7 +25,7 @@ jobs:
           package-manager-cache: false
       - run: python -m pip install --upgrade pip
       - run: python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
-      - run: python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test,pdf,report-test,mlops]"
+      - run: python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test,pdf,report-test,mlops,distributed,distributed-test]"
       - run: python -m ruff check neurovision apps tests
       - run: python -m ruff format --check neurovision apps tests
       - run: python -m mypy
@@ -67,6 +67,33 @@ jobs:
           npm test
         working-directory: apps/web
 
+  distributed-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: neurovision_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install ".[api,api-test,imaging,training,distributed,distributed-test]"
+      - run: python -m unittest discover -s tests -p test_distributed.py -v
+        env:
+          NEUROVISION_TEST_DATABASE_URL: postgresql+psycopg://postgres@127.0.0.1:5432/neurovision_test
+
   container:
     runs-on: ubuntu-latest
     steps:
@@ -75,3 +102,11 @@ jobs:
           persist-credentials: false
       - run: docker compose config --quiet
       - run: docker compose run --build --rm pipeline
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/create_local_secrets.py
+      - run: docker compose up --build -d
+      - run: python scripts/check_compose.py
+      - if: always()
+        run: docker compose down

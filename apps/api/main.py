@@ -91,6 +91,7 @@ def create_app(
     limits: IngestionLimits = DEFAULT_LIMITS,
     queue_factory: Callable[[JobRunner, JobEvent], JobQueue] = LocalJobs,
     logger: logging.Logger | None = None,
+    readiness: Callable[[], bool] | None = None,
 ) -> FastAPI:
     """Create one local service instance or inject deployment-owned adapters."""
     token = os.environ.get("NEUROVISION_API_TOKEN")
@@ -170,6 +171,14 @@ def create_app(
     @app.get(PREFIX + "/health")
     async def health() -> dict[str, str]:
         return {"status": "ok", "notice": RESEARCH_NOTICE}
+
+    @app.get(PREFIX + "/ready")
+    def ready() -> JSONResponse:
+        available = True if readiness is None else readiness()
+        return JSONResponse(
+            {"ready": available, "notice": RESEARCH_NOTICE},
+            status_code=200 if available else 503,
+        )
 
     router = APIRouter(
         prefix=PREFIX,

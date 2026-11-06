@@ -28,6 +28,8 @@ Research reports capture scan and preprocessing metadata, QC, model versions, cl
 
 Training artifacts record dataset and configuration fingerprints, Git revision, dependency snapshots, and run-specific model cards. Optional local MLflow tracking and artifact registries support versioned experiments, with a DVC-compatible synthetic workflow. [MLOps guide](docs/development/MLOPS.md)
 
+The distributed deployment adds a separate research worker, PostgreSQL-backed jobs and artifacts, Redis rate limits, and a frontend proxy. Compose, Kubernetes/Helm, and an optional AWS Terraform architecture are included. [Deployment guide](docs/deployment/README.md)
+
 **MRI benchmark metrics: Not yet benchmarked.**
 
 ## Setup
