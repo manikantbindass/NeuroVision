@@ -7,7 +7,7 @@
 | `apps/api`, `apps/web` | Reserved for the API and research viewer. |
 | `neurovision/core` | Stage contracts shared by all future pipeline components. `neurovision.pipeline` remains a public import path. |
 | `neurovision/imaging`, `neurovision/datasets` | Local MRI readers, canonical volume contracts, and dataset manifests or adapters. |
-| `neurovision/preprocessing` | Reserved for preprocessing transforms. |
+| `neurovision/preprocessing` | Configurable transforms, provenance and caching, registration adapters, QC reports, and slice montages. |
 | `neurovision/models`, `training`, `inference`, `evaluation` | Reserved for model definitions, fitting, prediction, and benchmarking. |
 | `neurovision/uncertainty`, `explainability`, `mapping`, `longitudinal`, `reporting` | Reserved for research analysis and report generation. |
 | `configs`, `scripts`, `tests`, `notebooks`, `examples` | Configuration, developer utilities, tests, and synthetic examples. |

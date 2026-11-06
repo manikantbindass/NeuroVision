@@ -10,11 +10,11 @@ NeuroVision-2028 is a research platform under development for reproducible brain
 
 The foundation provides shared pipeline contracts, validated runtime settings, structured logs, reproducible Python random streams, and a CLI that lists the reference stages. The optional MRI engine loads NIfTI and reviewed DICOM locally and validates dataset manifests. [Architecture](docs/development/ARCHITECTURE.md) · [Phase status](docs/development/PHASE_STATUS.md) · [Changelog](CHANGELOG.md)
 
-The next phases add preprocessing, QC, and reproducible segmentation benchmarks. Later phases cover measurements and research reports, followed by the API, worker, and viewer. [Capability roadmap](docs/development/CAPABILITIES.md)
+The preprocessing engine adds configurable spatial and intensity transforms, per-step provenance, and QC reports and montages. The next phases cover reproducible segmentation benchmarks, measurements and research reports, then the API, worker, and viewer. [Preprocessing guide](docs/development/PREPROCESSING.md) · [Capability roadmap](docs/development/CAPABILITIES.md)
 
 ## Setup
 
-You need Git, Python 3.11 or later, and pip. The setup below installs the optional MRI libraries for the synthetic imaging tests. For the stage catalog CLI alone, install `.` in place of `".[imaging]"`.
+You need Git, Python 3.11 or later, and pip. The setup below installs the optional libraries for the synthetic MRI and preprocessing tests. Include `bias` in the extras for the N4 test. For the stage catalog CLI alone, install `.`.
 
 ### Bash terminal
 
@@ -22,7 +22,7 @@ You need Git, Python 3.11 or later, and pip. The setup below installs the option
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 python3 -m venv .venv
-.venv/bin/python -m pip install ".[imaging]"
+.venv/bin/python -m pip install ".[imaging,preprocessing]"
 .venv/bin/python -m neurovision
 .venv/bin/python -m unittest discover -s tests -v
 ```
@@ -33,7 +33,7 @@ python3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 Set-Location NeuroVision
 py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install ".[imaging]"
+.\.venv\Scripts\python.exe -m pip install ".[imaging,preprocessing]"
 .\.venv\Scripts\python.exe -m neurovision
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
@@ -44,7 +44,7 @@ py -3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install ".[imaging]"
+.venv\Scripts\python.exe -m pip install ".[imaging,preprocessing]"
 .venv\Scripts\python.exe -m neurovision
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 ```

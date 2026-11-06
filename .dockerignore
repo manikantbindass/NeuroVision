@@ -10,6 +10,8 @@
 !neurovision/imaging/*.py
 !neurovision/datasets/
 !neurovision/datasets/*.py
+!neurovision/preprocessing/
+!neurovision/preprocessing/*.py
 !deployment/
 !deployment/docker/
 !deployment/docker/Dockerfile
