@@ -99,8 +99,9 @@ def manifest_fingerprint(root: Path, manifest: "DatasetManifest") -> dict[str, A
 
 def git_snapshot(root: Path) -> dict[str, Any]:
     def git(*args: str) -> str:
-        return subprocess.run(
-            ["git", "-C", str(root), *args],
+        # Only fixed Git subcommands below are accepted, without shell expansion.
+        return subprocess.run(  # noqa: S603
+            ["git", "-C", str(root), *args],  # noqa: S607
             check=True,
             capture_output=True,
             text=True,

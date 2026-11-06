@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Harden upload headers, auth ambiguity checks, privacy-preserving audit events, and proxy security policies.
+- Add private HTTP and job metrics, tracing hooks, medical data safeguards, dependency and secret scans, and a Python coverage gate.
+
 - Add durable SQL artifacts and leased research workers with shared Redis rate limits.
 - Add API and frontend images, a complete local Compose stack, Kubernetes resources, Helm deployment, and an optional private AWS architecture.
 

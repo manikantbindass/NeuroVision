@@ -3,17 +3,20 @@
 import json
 import logging
 from collections.abc import Mapping
+from hashlib import sha256
 from time import perf_counter
 from typing import Any
 from uuid import uuid4
 
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 from starlette.datastructures import Headers, MutableHeaders
 from starlette.exceptions import HTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from apps.api.adapters import Authenticator, RateLimiter
 from apps.api.contracts import APIError, ErrorDetail, ErrorResponse
+from apps.api.telemetry import Telemetry, method_label, request_span
 
 
 def error_response(
@@ -37,6 +40,7 @@ class RequestBoundary:
         auth: Authenticator,
         limiter: RateLimiter,
         logger: logging.Logger,
+        telemetry: Telemetry,
         upload_bytes: int,
         max_active: int = 8,
     ) -> None:
@@ -47,6 +51,7 @@ class RequestBoundary:
             max_active,
         )
         self.active = 0
+        self.telemetry = telemetry
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -69,6 +74,7 @@ class RequestBoundary:
         started = False
         acquired = False
         start = perf_counter()
+        span = request_span(request_id)
 
         async def send_response(message: Message) -> None:
             nonlocal status, started
@@ -78,8 +84,17 @@ class RequestBoundary:
                 headers = MutableHeaders(scope=message)
                 headers["X-Request-ID"] = request_id
                 headers["X-Content-Type-Options"] = "nosniff"
-                if path.startswith("/api/v1/"):
+                headers["X-Frame-Options"] = "DENY"
+                headers["Referrer-Policy"] = "no-referrer"
+                headers["Permissions-Policy"] = (
+                    "camera=(), microphone=(), geolocation=()"
+                )
+                if path.startswith(("/api/v1/", "/internal/")):
                     headers["Cache-Control"] = "no-store"
+                    if "content-security-policy" not in headers:
+                        headers["Content-Security-Policy"] = (
+                            "default-src 'none'; frame-ancestors 'none'; sandbox"
+                        )
             await send(message)
 
         async def reject(
@@ -91,7 +106,12 @@ class RequestBoundary:
 
         try:
             if protected:
-                owner = self.auth.authenticate(incoming.get("authorization"))
+                credentials = incoming.getlist("authorization")
+                owner = (
+                    self.auth.authenticate(credentials[0])
+                    if len(credentials) == 1
+                    else None
+                )
                 if owner is None:
                     await reject(
                         APIError(
@@ -101,18 +121,18 @@ class RequestBoundary:
                     )
                     return
                 state["owner"] = owner
-                retry_after = self.limiter.retry_after(owner)
+                if self.active >= self.max_active:
+                    await reject(APIError(503, "server_busy", "Research API is busy."))
+                    return
+                self.active += 1
+                acquired = True
+                retry_after = await run_in_threadpool(self.limiter.retry_after, owner)
                 if retry_after is not None:
                     await reject(
                         APIError(429, "rate_limited", "Request limit exceeded."),
                         {"Retry-After": str(retry_after)},
                     )
                     return
-                if self.active >= self.max_active:
-                    await reject(APIError(503, "server_busy", "Research API is busy."))
-                    return
-                self.active += 1
-                acquired = True
 
             limit = self.upload_bytes if path == "/api/v1/scans" else 65_536
             used = 0
@@ -173,13 +193,33 @@ class RequestBoundary:
         finally:
             if acquired:
                 self.active -= 1
-            route = scope.get("route")
+            route = getattr(scope.get("route"), "path", None)
+            elapsed = perf_counter() - start
+            method = method_label(scope["method"])
+            if path != "/internal/metrics":
+                self.telemetry.request(method, route or "unmatched", status, elapsed)
+            span.set_attribute("http.route", route or "unmatched")
+            span.set_attribute("http.response.status_code", status)
+            span.end()
+            if protected:
+                principal = state.get("owner")
+                log_event(
+                    self.logger,
+                    "research_access",
+                    request_id=request_id,
+                    principal=sha256(principal.encode()).hexdigest()
+                    if principal
+                    else None,
+                    method=method,
+                    route=route,
+                    status=status,
+                )
             log_event(
                 self.logger,
                 "request_complete",
                 request_id=request_id,
-                method=scope["method"],
-                route=getattr(route, "path", None),
+                method=method,
+                route=route,
                 status=status,
-                duration_ms=round((perf_counter() - start) * 1000, 2),
+                duration_ms=round(elapsed * 1000, 2),
             )

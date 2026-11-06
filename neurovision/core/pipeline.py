@@ -40,7 +40,7 @@ class RunContext:
 
     def rng(self) -> Random:
         """Create a fresh deterministic Python random stream for this run."""
-        return Random(self.seed)
+        return Random(self.seed)  # noqa: S311 - reproducible experiment RNG
 
 
 StageInput = TypeVar("StageInput", contravariant=True)

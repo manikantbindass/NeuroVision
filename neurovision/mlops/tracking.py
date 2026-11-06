@@ -35,7 +35,7 @@ def tracking_attempt(
     except BaseException:
         try:
             tracker.finish("FAILED", ())
-        except Exception:
+        except Exception:  # noqa: S110 - preserve the original training failure
             pass
         raise
     else:

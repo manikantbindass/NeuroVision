@@ -150,7 +150,7 @@ class RandomFlip(DeterministicTransform):
             or any(axis not in (0, 1, 2) for axis in self.axes)
         ):
             raise PreprocessingError("Invalid flip axes or probability")
-        rng = Random(seed)
+        rng = Random(seed)  # noqa: S311 - reproducible augmentation RNG
         chosen = tuple(axis for axis in self.axes if rng.random() < self.probability)
         return on_grid(volume, np.flip(volume.data, axis=chosen)), {
             "flipped_axes": chosen
