@@ -18,6 +18,7 @@ Interactive docs are at `/docs`, with the schema at `/api/v1/openapi.json`. Heal
 | --- | --- |
 | `GET /health` | Liveness and research notice |
 | `POST /scans`, `GET /scans`, `GET/DELETE /scans/{id}` | Validated NIfTI upload, owner-scoped IDs, metadata, and removal |
+| `GET /scans/{id}/volume.nii`, `GET /preprocess/{id}/volume.nii` | Owner-scoped canonical NIfTI-2 volume for synchronized viewing |
 | `POST /preprocess`, `GET /preprocess/{id}` | QC, optional intensity normalization, and provenance. A failed QC result has `usable: false`. A usable result ID can be passed to inference as `scan_id`. |
 | `GET /models` | Enabled, operator-registered inference models, revision and class schema |
 | `POST /inference` | Queue a full-grid prediction for one channel and one 3D scan |

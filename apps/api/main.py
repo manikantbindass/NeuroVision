@@ -236,6 +236,16 @@ def create_app(
     def scan(key: UUID, owner: Owner) -> Metadata:
         return service.summary(owner, key, "scan")
 
+    @router.get("/scans/{key}/volume.nii", tags=["scans"], response_class=Response)
+    def scan_volume(key: UUID, owner: Owner) -> Response:
+        service.summary(owner, key, "scan")
+        volume = service.scan(owner, key).volume
+        return Response(
+            nifti_bytes(volume, volume.data),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": 'attachment; filename="volume.nii"'},
+        )
+
     @router.delete("/scans/{key}", status_code=204, tags=["scans"])
     def delete_scan(key: UUID, owner: Owner) -> Response:
         service.summary(owner, key, "scan")
@@ -249,6 +259,16 @@ def create_app(
     @router.get("/preprocess/{key}", tags=["jobs"])
     def preprocessed(key: UUID, owner: Owner) -> Metadata:
         return service.summary(owner, key, "preprocess")
+
+    @router.get("/preprocess/{key}/volume.nii", tags=["jobs"], response_class=Response)
+    def preprocessed_volume(key: UUID, owner: Owner) -> Response:
+        service.summary(owner, key, "preprocess")
+        volume = service.scan(owner, key).volume
+        return Response(
+            nifti_bytes(volume, volume.data),
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": 'attachment; filename="preprocessed.nii"'},
+        )
 
     @router.get("/models", tags=["models"])
     def model_catalog() -> Metadata:
