@@ -34,6 +34,8 @@ jobs:
       - run: python -m neurovision.uncertainty.example --output artifacts/neuroconfidence-synthetic
       - run: node tests/check_neuroconfidence.cjs artifacts/neuroconfidence-synthetic/neuroconfidence.html
       - run: python -m neurovision.mapping.example --output artifacts/neuromap-synthetic/comparison.html
+      - run: python -m neurovision.longitudinal.example --output artifacts/neurotimeline-synthetic/timeline.html
+      - run: node tests/check_neurotimeline.cjs artifacts/neurotimeline-synthetic/timeline.html
       - run: python -m pip check
       - run: python -I -m neurovision
         working-directory: ${{ runner.temp }}

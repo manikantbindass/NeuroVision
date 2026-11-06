@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroTimeline research viewer</title>
+<style>
+:root{color-scheme:dark;background:#111827;color:#eaf2ff;font:16px system-ui}
+body{max-width:1160px;margin:auto;padding:24px;line-height:1.5}
+header,section{margin-bottom:20px}
+.notice{padding:12px;border:1px solid #e8bd78}
+.controls,.panels,.legend{display:flex;flex-wrap:wrap;gap:16px}
+label{display:grid;gap:4px}
+select,input{font:inherit}
+figure{flex:1 1 190px;margin:0}
+canvas{width:100%;image-rendering:pixelated;background:#0b1020;display:block}
+.gain{color:#59e1dd}.loss{color:#ffb568}.outside{color:#c3acd7}
+.table{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}
+th,td{padding:8px;border-bottom:1px solid #56637c}
+</style></head><body>
+<header><h1>NeuroTimeline</h1>
+<p class="notice" id="notice"></p><p class="notice" id="warning"></p></header>
+<main>
+<section class="controls" aria-label="Comparison controls">
+<label>Follow-up day <select id="time"></select></label>
+<label>Region <select id="region"></select></label>
+<label>Grid slice <input type="range" min="0" value="0" id="slice">
+<output id="sliceIndex" for="slice"></output></label>
+</section>
+<p id="pairSummary" role="status"></p><p id="provenance"></p>
+<section class="panels" aria-label="Registered slice comparison">
+<figure><canvas id="before" aria-label="Baseline MRI"></canvas>
+<figcaption>Baseline MRI</figcaption></figure>
+<figure><canvas id="after" aria-label="Registered follow-up MRI"></canvas>
+<figcaption>Follow-up on baseline grid</figcaption></figure>
+<figure><canvas id="difference" aria-label="Class-specific difference map"></canvas>
+<figcaption>Difference over baseline MRI</figcaption></figure>
+</section>
+<p class="legend"><span class="gain">Cyan: gained</span>
+<span class="loss">Amber: lost</span><span class="outside">Purple: outside shared coverage</span>
+<span>Gray: unchanged</span></p>
+<p>The sampled voxel slices share baseline intensity scaling. Display ignores physical aspect ratio.
+Gain, loss, and Dice are calculated at full resolution within shared grid coverage.
+Volumes use each time point's full segmentation grid.</p>
+<h2 id="trendTitle">Region changes from baseline</h2>
+<div class="table"><table><thead><tr>
+<th scope="col">Day</th><th scope="col">Baseline mm³</th><th scope="col">Follow-up mm³</th>
+<th scope="col">Change mm³</th><th scope="col">Change %</th><th scope="col">Gained voxels</th>
+<th scope="col">Lost voxels</th><th scope="col">Dice</th><th scope="col">Replicate spread mm³</th>
+</tr></thead><tbody id="trend"></tbody></table></div>
+<p>Replicate spread shows the empirical 5th to 95th percentiles of paired changes when available.
+It describes the supplied repeat runs and provides no statistical confidence interval.</p>
+</main>
+<script type="application/json" id="payload">__PAYLOAD__</script>
+<script>
+"use strict";
+const byId = id => document.getElementById(id);
+const data = JSON.parse(byId("payload").textContent);
+const decode = encoded => Uint8Array.from(atob(encoded), char => char.charCodeAt(0));
+const label = (bytes, index) => bytes[2 * index] + 256 * bytes[2 * index + 1];
+const firstImage = decode(data.baselineImage);
+const firstLabels = decode(data.baselineLabels);
+const [width, height, depth] = data.shape;
+const time = byId("time");
+const region = byId("region");
+const slice = byId("slice");
+const addOption = (select, value, title) => {
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = title;
+  select.append(option);
+};
+data.pairs.forEach((pair, index) => addOption(time, index, "Day " + pair.day));
+data.pairs[0].regions.forEach(item => addOption(region, item.code, item.name));
+slice.max = depth - 1;
+slice.value = Math.floor(depth / 2);
+byId("notice").textContent = data.notice;
+byId("warning").textContent = data.warning;
+const number = value => value === null ? "—" : value.toLocaleString(undefined, {
+  maximumFractionDigits: 3,
+});
+const percent = value => value === null ? "—" : number(value) + "%";
+let currentIndex = -1;
+let movingImage, movingLabels, valid;
+function draw(canvas, pixel) {
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  const frame = context.createImageData(width, height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = (x * height + height - y - 1) * depth + Number(slice.value);
+      frame.data.set(pixel(index), (y * width + x) * 4);
+    }
+  }
+  context.putImageData(frame, 0, 0);
+}
+const gray = value => [value, value, value, 255];
+const outside = [108, 83, 133, 255];
+function render() {
+  const index = Number(time.value);
+  const code = Number(region.value);
+  const pair = data.pairs[index];
+  if (index !== currentIndex) {
+    movingImage = decode(pair.image);
+    movingLabels = decode(pair.labels);
+    valid = decode(pair.valid);
+    currentIndex = index;
+  }
+  byId("sliceIndex").textContent = data.slices[Number(slice.value)];
+  const changed = pair.changedMetadata.join(", ") || "none recorded";
+  byId("pairSummary").textContent =
+    `Day ${data.baselineDay} → ${pair.day}. Baseline grid coverage ${percent(pair.coverage * 100)}. ` +
+    `Image foreground Dice ${number(pair.foregroundDice)}. Changed metadata ${changed}.`;
+  byId("provenance").textContent = "Registration record: " + pair.provenance +
+    (pair.replicateProtocol ? ". Replicate protocol: " + pair.replicateProtocol : "");
+  draw(byId("before"), i => gray(firstImage[i]));
+  draw(byId("after"), i => valid[i] ? gray(movingImage[i]) : outside);
+  draw(byId("difference"), i => {
+    if (!valid[i]) return outside;
+    const change = Number(label(movingLabels, i) === code) - Number(label(firstLabels, i) === code);
+    if (change === 1) return [68, 224, 218, 255];
+    if (change === -1) return [255, 170, 80, 255];
+    return gray(firstImage[i]);
+  });
+  const table = byId("trend");
+  table.replaceChildren();
+  data.pairs.forEach((comparison, rowIndex) => {
+    const item = comparison.regions.find(entry => entry.code === code);
+    const spread = item.spread;
+    const row = document.createElement("tr");
+    if (rowIndex === index) row.setAttribute("aria-current", "true");
+    const values = [comparison.day, number(item.baseline_mm3), number(item.follow_up_mm3),
+      number(item.delta_mm3), percent(item.percent_change), number(item.gained_voxels),
+      number(item.lost_voxels), number(item.dice), spread ?
+        `${number(spread.p05_mm3)} to ${number(spread.p95_mm3)} (n=${spread.pairs})` : "—"];
+    values.forEach(value => {
+      const cell = document.createElement("td");
+      cell.textContent = value;
+      row.append(cell);
+    });
+    table.append(row);
+  });
+  byId("trendTitle").textContent =
+    pair.regions.find(entry => entry.code === code).name + " changes from baseline";
+}
+time.addEventListener("change", render);
+region.addEventListener("change", render);
+slice.addEventListener("input", render);
+render();
+</script></body></html>

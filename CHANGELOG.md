@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add baseline-referenced longitudinal MRI mapping, native regional volume changes, shared-coverage difference maps, paired replicate spread, and the interactive NeuroTimeline viewer.
+
 - Add fixed-ROI gradient saliency and bounded patch occlusion for segmentation experiments.
 - Add NeuroMap atlas overlap, physical volumes, hemisphere annotations, confidence summaries, and a local comparison report.
 
