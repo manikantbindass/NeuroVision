@@ -8,13 +8,13 @@
 
 NeuroVision-2028 is a research platform under development for reproducible brain MRI segmentation experiments, model benchmarking, uncertainty and explainability studies, and longitudinal analysis prototypes. Its planned outputs include quantitative measurements, interactive 2D and 3D views, and structured reports served through an API and web interface.
 
-The foundation provides shared pipeline contracts, validated runtime settings, structured logs, reproducible Python random streams, and a CLI that lists the reference stages. [Architecture](docs/development/ARCHITECTURE.md) · [Phase status](docs/development/PHASE_STATUS.md) · [Changelog](CHANGELOG.md)
+The foundation provides shared pipeline contracts, validated runtime settings, structured logs, reproducible Python random streams, and a CLI that lists the reference stages. The optional MRI engine loads NIfTI and reviewed DICOM locally and validates dataset manifests. [Architecture](docs/development/ARCHITECTURE.md) · [Phase status](docs/development/PHASE_STATUS.md) · [Changelog](CHANGELOG.md)
 
-The roadmap starts with bounded NIfTI loading and geometry validation, then adds preprocessing, QC, and reproducible segmentation benchmarks. Later phases cover measurements and research reports, followed by the API, worker, and viewer. DICOM ingestion has a separate privacy gate. [Capability roadmap](docs/development/CAPABILITIES.md)
+The next phases add preprocessing, QC, and reproducible segmentation benchmarks. Later phases cover measurements and research reports, followed by the API, worker, and viewer. [Capability roadmap](docs/development/CAPABILITIES.md)
 
 ## Setup
 
-You need Git, Python 3.11 or later, and pip. The CLI and tests use the Python standard library. The installation step may download the build backend.
+You need Git, Python 3.11 or later, and pip. The setup below installs the optional MRI libraries for the synthetic imaging tests. For the stage catalog CLI alone, install `.` in place of `".[imaging]"`.
 
 ### Bash terminal
 
@@ -22,7 +22,7 @@ You need Git, Python 3.11 or later, and pip. The CLI and tests use the Python st
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 python3 -m venv .venv
-.venv/bin/python -m pip install .
+.venv/bin/python -m pip install ".[imaging]"
 .venv/bin/python -m neurovision
 .venv/bin/python -m unittest discover -s tests -v
 ```
@@ -33,7 +33,7 @@ python3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 Set-Location NeuroVision
 py -3 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install .
+.\.venv\Scripts\python.exe -m pip install ".[imaging]"
 .\.venv\Scripts\python.exe -m neurovision
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
@@ -44,7 +44,7 @@ py -3 -m venv .venv
 git clone https://github.com/manikantbindass/NeuroVision.git
 cd NeuroVision
 py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install .
+.venv\Scripts\python.exe -m pip install ".[imaging]"
 .venv\Scripts\python.exe -m neurovision
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
@@ -52,5 +52,7 @@ py -3 -m venv .venv
 The CLI also installs as `neurovision`. It uses defaults when the process environment has no overrides. See the [environment and dependency guide](docs/development/FOUNDATION.md) for Bash, PowerShell, and Command Prompt configuration examples.
 
 See the [repository map](docs/architecture/REPOSITORY.md), [contributor guide](CONTRIBUTING.md), and [local CLI container setup](docs/deployment/README.md).
+
+See the [MRI ingestion guide](docs/development/IMAGING.md) for code examples and the [data card](DATA_CARD.md) for input support, access terms, and limitations.
 
 <img src="assets/animations/footer.svg" alt="Animated flow from MRI to a research report" width="100%">

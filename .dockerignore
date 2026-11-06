@@ -6,6 +6,10 @@
 !neurovision/*.py
 !neurovision/core/
 !neurovision/core/*.py
+!neurovision/imaging/
+!neurovision/imaging/*.py
+!neurovision/datasets/
+!neurovision/datasets/*.py
 !deployment/
 !deployment/docker/
 !deployment/docker/Dockerfile

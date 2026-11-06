@@ -8,5 +8,6 @@
 | Advanced capabilities and technology direction | [Capability roadmap](CAPABILITIES.md) maps proposed features to validation gates and dependency choices | Documentation review and existing CLI regression checks. |
 | Monorepo architecture | [Repository layout](../architecture/REPOSITORY.md), compatible core imports, contributor files, CI, and CLI container definition | Import compatibility, CLI checks, wheel installation, and Compose configuration validation. |
 | Phase 1 foundation | [Runtime settings](FOUNDATION.md), JSON logging, seed handling, exceptions, CLI entry point, and developer tooling | Clean installation, unit and CLI integration checks, Ruff, mypy, pre-commit, and Compose configuration. |
+| Phase 2 MRI data engine | [MRI ingestion](IMAGING.md), reviewed DICOM discovery and loading, RAS volume contracts, dataset validation, and local BraTS 2021 adapter | Synthetic NIfTI and DICOM inputs, safety rejection cases, and dataset manifest integration tests. |
 | MRI processing, models, and application | Planned for later phases | Validation will be defined with each implementation. |
 | Final PDF and PowerPoint | Planned after implementation phases are merged | Check the artifacts against the merged project. |

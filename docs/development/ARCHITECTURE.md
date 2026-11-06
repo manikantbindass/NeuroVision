@@ -56,4 +56,4 @@ The reference flow starts with an MRI volume and ends with a structured research
 
 Future stage implementations should define concrete artifact contracts before joining a workflow. MRI artifacts should carry axis and coordinate conventions, spacing, transforms, and label schema where applicable. Experiment records should capture configuration, software and model versions, and QC outcomes. API and web layers should consume these artifacts and show the research notice on relevant screens and exports.
 
-Privacy checks should cover identifiers in filenames, metadata and pixels. Header removal alone leaves possible identifiers in image content, including facial anatomy. Tests and demos should use synthetic data. The current interface and CLI handle no image inputs.
+The [local ingestion library](IMAGING.md) produces a canonical MRI volume after validation and orientation handling. Its DICOM boundary requires trusted prior review of identifiers in filenames, metadata and pixels. Tests and demos use synthetic data. The stage catalog CLI has no image input.

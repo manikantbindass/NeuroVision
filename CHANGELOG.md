@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add bounded NIfTI and privacy-gated DICOM ingestion, canonical RAS volumes, dataset manifests and validation, and a local BraTS 2021 adapter.
+
 - Add validated environment settings, JSON CLI logs, isolated seeded random streams, and shared application exceptions.
 - Add the installed CLI entry point, pre-commit hooks, strict type checking, and Mermaid architecture diagrams.
 

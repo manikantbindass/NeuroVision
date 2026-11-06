@@ -14,6 +14,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["mypy==1.19.1", "pre-commit==4.5.1", "ruff==0.17.3"]
+imaging = ["nibabel>=5.4,<6", "numpy>=2.2.6,<2.5", "pydicom>=3.0.2,<4"]
 
 [project.scripts]
 neurovision = "neurovision.__main__:main"
@@ -29,3 +30,8 @@ select = ["E", "F", "I", "UP", "B"]
 python_version = "3.11"
 files = ["neurovision", "tests"]
 strict = true
+untyped_calls_exclude = ["nibabel"]
+
+[[tool.mypy.overrides]]
+module = ["nibabel", "nibabel.*"]
+ignore_missing_imports = true
