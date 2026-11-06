@@ -1,0 +1,22 @@
+name: Deployment validation
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  definitions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.19.2
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.5
+      - run: helm lint deployment/helm/neurovision --strict
+      - run: helm template neurovision deployment/helm/neurovision --set worker.gpu=true --set autoscaling.enabled=true --set ingress.enabled=true > /tmp/neurovision.yaml
+      - run: terraform -chdir=deployment/terraform/aws fmt -check
+      - run: terraform -chdir=deployment/terraform/aws init -backend=false -input=false
+      - run: terraform -chdir=deployment/terraform/aws validate

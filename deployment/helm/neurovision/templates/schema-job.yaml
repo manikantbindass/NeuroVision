@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: neurovision-schema
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 4
+  template:
+    metadata:
+      labels: {app: neurovision, component: schema}
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: schema
+          image: {{ .Values.api.image | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          command: [python, -m, apps.api.deployed, init-db]
+          env:
+            - name: NEUROVISION_DATABASE_URL
+              valueFrom:
+                secretKeyRef: {name: {{ .Values.existingSecret }}, key: database-url}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts: [{name: temporary, mountPath: /tmp}]
+      volumes:
+        - name: temporary
+          emptyDir: {sizeLimit: 128Mi}

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add durable SQL artifacts and leased research workers with shared Redis rate limits.
+- Add API and frontend images, a complete local Compose stack, Kubernetes resources, Helm deployment, and an optional private AWS architecture.
+
 - Add training provenance, dataset and configuration fingerprints, Git and environment snapshots, run-specific model cards, and reproducibility records.
 - Add opt-in local MLflow experiment tracking, trained-artifact registry adapters, and a DVC-compatible synthetic workflow.
 

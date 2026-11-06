@@ -18,7 +18,7 @@
 | 2D viewer and 3D visualization | Local workspace available | Linked canonical voxel planes, checked overlay grids, before/after views, and a sampled 3D boundary preview. [Workspace guide](WEB_WORKSPACE.md) |
 | Reproducible pipelines, experiment tracking and model registry | Local lifecycle available | Dataset and configuration fingerprints, Git and dependency snapshots, model cards, local MLflow experiments, immutable artifact registries, and a DVC-compatible synthetic pipeline. [MLOps guide](MLOPS.md) |
 | REST API and asynchronous inference | Local service available | Versioned routes with owner-scoped storage and bounded local work queues. Distributed workers, cancellation and retries remain planned. [API guide](../api/README.md) |
-| Containers, Kubernetes and observability | Planned | Verify a local container build and smoke test before orchestration. Test readiness, worker resource limits, telemetry redaction, and end-to-end operation before claiming deployment support. |
+| Containers, Kubernetes and observability | Deployment definitions and shared worker mode available | Compose stack, Kubernetes and Helm resources, worker metrics, and optional AWS architecture. Local runtime tests and static validation are available. Image and cluster execution remain unverified locally. [Deployment guide](../deployment/README.md) |
 
 ## Technology choices by layer
 

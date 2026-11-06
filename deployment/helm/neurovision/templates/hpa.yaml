@@ -1,0 +1,22 @@
+{{- if .Values.autoscaling.enabled }}
+{{- if lt (int .Values.autoscaling.maxReplicas) (int .Values.autoscaling.minReplicas) }}
+{{- fail "autoscaling.maxReplicas must be at least minReplicas" }}
+{{- end }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: neurovision-api
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: neurovision-api}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: {{ .Values.autoscaling.cpuUtilization }}}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies: [{type: Pods, value: 1, periodSeconds: 60}]
+{{- end }}
