@@ -2,7 +2,7 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
-**MRI accuracy and comparative speed: Not yet benchmarked.** Architectures in this phase can be instantiated, trained, checkpointed, and used for tensor inference. Repository checks exercise generated data. Select an architecture through an experiment configuration and report results on a documented research cohort before making performance claims.
+**Benchmark pending.** MRI accuracy and comparative speed have not been measured. Architectures in this phase can be instantiated, trained, checkpointed, and used for tensor inference. Repository checks exercise generated data. Select an architecture through an experiment configuration and report results on a documented research cohort before making performance claims.
 
 ## Architecture choices
 

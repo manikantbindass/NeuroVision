@@ -1,17 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 180" role="img" aria-labelledby="title">
-  <title id="title">NeuroVision-2028 animated scan illustration</title>
-  <rect width="960" height="180" rx="16" fill="#0a1527"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 210" role="img" aria-labelledby="title">
+  <title id="title">NeuroVision-2028 research workflow from MRI preparation to reporting</title>
+  <defs><clipPath id="scan"><ellipse cx="118" cy="101" rx="75" ry="72"/></clipPath></defs>
+  <rect width="960" height="210" rx="16" fill="#0a1527"/>
   <g fill="none" stroke="#58dce6" stroke-width="2">
-    <ellipse cx="112" cy="90" rx="64" ry="60"/>
-    <ellipse cx="112" cy="90" rx="48" ry="44" opacity=".65"/>
-    <ellipse cx="112" cy="90" rx="26" ry="29" opacity=".45"/>
-    <path d="M112 30v120M48 90h128" opacity=".3"/>
-    <path d="M55 90h114" stroke-width="3">
-      <animateTransform attributeName="transform" type="translate" values="0 -27;0 27;0 -27" dur="8s" repeatCount="indefinite"/>
-    </path>
+    <ellipse cx="118" cy="101" rx="75" ry="72"/>
+    <ellipse cx="118" cy="101" rx="57" ry="54" opacity=".65"/>
+    <ellipse cx="118" cy="101" rx="34" ry="33" opacity=".4"/>
+    <ellipse cx="118" cy="101" rx="62" ry="58" opacity=".4" stroke="#9ab4ff">
+      <animate attributeName="opacity" values=".12;.65;.12" dur="4s" repeatCount="indefinite"/>
+    </ellipse>
+    <path d="M118 29v144M43 101h150" opacity=".28"/>
+    <g clip-path="url(#scan)">
+      <path d="M43 101h150" stroke-width="3">
+        <animateTransform attributeName="transform" type="translate" values="0 -60;0 60;0 -60" dur="8s" repeatCount="indefinite"/>
+      </path>
+    </g>
   </g>
-  <g font-family="system-ui, sans-serif">
-    <text x="210" y="93" fill="#f0f8ff" font-size="44" font-weight="700">NeuroVision-2028</text>
-    <text x="212" y="127" fill="#86c9d7" font-size="21">Brain MRI segmentation and mapping research</text>
+  <g font-family="system-ui,sans-serif">
+    <text x="227" y="71" fill="#f0f8ff" font-size="43" font-weight="700">NeuroVision-2028</text>
+    <text x="229" y="108" fill="#a5e7ef" font-size="21">Brain MRI segmentation and mapping for research</text>
+    <path d="M230 128H899" stroke="#365871"/>
+    <path d="M230 128H899" stroke="#58dce6" stroke-width="2" stroke-dasharray="90 580" opacity=".75">
+      <animate attributeName="stroke-dashoffset" values="90;-579" dur="8s" repeatCount="indefinite"/>
+    </path>
+    <text x="230" y="158" fill="#e4f4f8" font-size="18">Prepare MRI  ·  Segment  ·  Inspect uncertainty  ·  Map and report</text>
+    <text x="230" y="185" fill="#88b9c8" font-size="14">Synthetic demos and reproducible experiments</text>
   </g>
 </svg>

@@ -13,7 +13,7 @@ python -m pip install ".[training,imaging,mlops]"
 python -m neurovision.mlops.example --config configs/baseline-2d.json --output artifacts/mlops-run --mlflow artifacts/mlflow --register synthetic-unet
 ```
 
-Use a fresh output directory. The example uses generated ellipsoids, records dataset and configuration identities, logs metrics and selected artifacts to a local MLflow experiment, and publishes explicit model versions to the local and MLflow registries. No MRI benchmark is performed.
+Use a fresh output directory. The example uses generated ellipsoids, records dataset and configuration identities, logs metrics and selected artifacts to a local MLflow experiment, and publishes explicit model versions to the local and MLflow registries. **Benchmark pending.**
 
 The adapter uses the MLflow client with an explicit local SQLite URI and a local artifact directory. It does not use the process-global active run. Unless already configured by the operator, it disables MLflow usage telemetry and uses short-lived SQLite connections. The example prints the tracking run ID. The `mlops` extra installs MLflow's lightweight client and the SQL libraries needed for the local store. The full MLflow UI/server package is optional and should be installed only in an operator-managed environment. [MLflow client API](https://mlflow.org/docs/latest/api_reference/python_api/mlflow.client.html)
 

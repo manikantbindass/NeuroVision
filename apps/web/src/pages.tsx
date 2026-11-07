@@ -473,7 +473,7 @@ export function ModelComparison({
         {synthetic && (
           <p className="muted">
             Scores are computed against the generated phantom reference. Real
-            MRI metrics are not yet benchmarked.
+            Benchmark pending.
           </p>
         )}
       </Panel>

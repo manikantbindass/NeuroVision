@@ -14,7 +14,7 @@ from neurovision.core.pipeline import RESEARCH_NOTICE
 TITLE = "AI-Assisted Research Segmentation Report"
 Document = dict[str, Any]
 DEFAULT_LIMITATIONS = (
-    "MRI performance is not yet benchmarked for this platform.",
+    "Benchmark pending.",
     "Model confidence and entropy are uncalibrated unless validated independently.",
     "Quantities depend on scan geometry, preprocessing, segmentation and registration.",
     "Atlas associations depend on atlas licensing, label definitions and alignment QC.",

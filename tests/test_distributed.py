@@ -113,9 +113,7 @@ class DistributedTests(unittest.TestCase):
                         env=environment,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
-                        creationflags=subprocess.CREATE_NO_WINDOW
-                        if os.name == "nt"
-                        else 0,
+                        creationflags=int(getattr(subprocess, "CREATE_NO_WINDOW", 0)),
                     )
                     try:
                         deadline = monotonic() + 30

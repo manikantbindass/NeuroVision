@@ -1,6 +1,8 @@
 # NeuroTimeline longitudinal MRI experiments
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
+
+**Experimental.** Synthetic fixtures verify the comparison workflow. **Benchmark pending.**
 >
 > Observed differences may arise from acquisition, preprocessing, registration, model, or segmentation variation.
 

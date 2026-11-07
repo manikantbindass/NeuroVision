@@ -2,22 +2,22 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
-**Available today:** the foundation CLI, [local MRI data engine](IMAGING.md), [preprocessing and QC](PREPROCESSING.md), and [baseline segmentation training](BASELINE_TRAINING.md). A research experiment earns an **Experimental** label only when it can run end to end with documented inputs, constraints, and validation results. An interface without a runnable implementation is a **Stub**. The catalog CLI displays stage names.
+**Available today:** the foundation CLI, [local MRI data engine](IMAGING.md), [preprocessing and QC](PREPROCESSING.md), and [baseline segmentation training](BASELINE_TRAINING.md). Use **Experimental.** for unvalidated prototypes or research proposals, and state whether the implementation exists. Use **Planned.** for future architecture. The catalog CLI displays stage names.
 
 | Capability | Status | Boundary and evidence required before enabling |
 | --- | --- | --- |
 | NIfTI MRI and T1, T1ce, T2, FLAIR | Available locally | Bounded NIfTI-1 and NIfTI-2 decoding validates dimensions, scalar datatype, finite intensities and physical geometry. Modalities are explicit or unknown. |
-| Multimodal MRI | Manifest validation available | Check required sequences and a shared grid for each case. Model channel order and registration are planned. |
+| Multimodal MRI | Manifest validation available | Check required sequences and a shared grid for each case. The Python tensor adapter accepts an explicit channel order. **Planned.** Automatic registration estimation. |
 | DICOM ingestion | Available locally, privacy gated | Load reviewed, classic uncompressed MR series from a trusted staging directory. Public uploads require a separate design and privacy review. |
 | Skull stripping, bias-field correction, normalization, resampling, registration and automatic QC | Local transforms and adapters available | Normalize, resample, run optional N4, apply external brain masks and affine registration, and review QC reports. Automatic brain mask and registration estimation are deferred. [Preprocessing guide](PREPROCESSING.md) |
-| 2D, 3D and multi-class segmentation for anatomy and lesion or tumor experiments | Trainable baselines available | PyTorch U-Nets, synthetic training examples, and per-class overlap and surface metrics are available. Task-specific trained models and MRI benchmarks remain pending. [Baseline guide](BASELINE_TRAINING.md) |
-| Ensemble inference and uncertainty | Local research experiments available | Weighted probabilities, reversible flip TTA, supported MC dropout, disagreement and uncertainty maps, and a local NeuroConfidence viewer. Calibration remains planned. [Ensemble guide](../research/ENSEMBLE_INTELLIGENCE.md) |
+| 2D, 3D and multi-class segmentation for anatomy and lesion or tumor experiments | Trainable baselines available | PyTorch U-Nets, synthetic training examples, and per-class overlap and surface metrics are available. **Benchmark pending.** Task-specific trained weights are not bundled. [Baseline guide](BASELINE_TRAINING.md) |
+| Ensemble inference and uncertainty | Local research experiments available | Weighted probabilities, reversible flip TTA, supported MC dropout, disagreement and uncertainty maps, and a local NeuroConfidence viewer. **Planned.** Calibration studies. [Ensemble guide](../research/ENSEMBLE_INTELLIGENCE.md) |
 | Volumetry, hemisphere analysis and atlas mapping | Local research experiments available | Measure physical volumes and categorical atlas overlaps after externally reviewed affine registration. [NeuroMap guide](../research/NEUROMAP.md) |
 | Explainability | Local research experiments available | Compare fixed-ROI input-gradient saliency and patch occlusion for one FP32 model. [NeuroMap guide](../research/NEUROMAP.md) |
 | Longitudinal comparison | Local research experiment available | Compare time points using reviewed rigid registration, native region volumes, shared-coverage spatial changes, and optional paired replicate spread. [NeuroTimeline guide](../research/NEUROTIMELINE.md) |
 | 2D viewer and 3D visualization | Local workspace available | Linked canonical voxel planes, checked overlay grids, before/after views, and a sampled 3D boundary preview. [Workspace guide](WEB_WORKSPACE.md) |
 | Reproducible pipelines, experiment tracking and model registry | Local lifecycle available | Dataset and configuration fingerprints, Git and dependency snapshots, model cards, local MLflow experiments, immutable artifact registries, and a DVC-compatible synthetic pipeline. [MLOps guide](MLOPS.md) |
-| REST API and asynchronous inference | Local service available | Versioned routes with owner-scoped storage and bounded local work queues. Distributed workers, cancellation and retries remain planned. [API guide](../api/README.md) |
+| REST API and asynchronous inference | Local service available | Versioned routes with owner-scoped storage and bounded local work queues. The distributed worker supports lease recovery. **Planned.** Job cancellation. [API guide](../api/README.md) |
 | Containers, Kubernetes and observability | Deployment definitions and shared worker mode available | Compose stack, Kubernetes and Helm resources, worker metrics, and optional AWS architecture. Local runtime tests and static validation are available. Image and cluster execution remain unverified locally. [Deployment guide](../deployment/README.md) |
 
 ## Technology choices by layer

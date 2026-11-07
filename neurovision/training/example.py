@@ -96,7 +96,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (ConfigurationError, TrainingError, OSError, ValueError) as error:
         parser.exit(2, f"{error}\n")
     print(f"Synthetic smoke training completed {len(result.history)} epoch(s).")
-    print("See history.json for synthetic diagnostics. No MRI benchmark was run.")
+    print("See history.json for synthetic diagnostics. Benchmark pending.")
     return 0
 
 

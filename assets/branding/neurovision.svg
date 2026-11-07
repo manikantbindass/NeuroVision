@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="NeuroVision scan mark">
+  <rect width="64" height="64" rx="14" fill="#0a1527"/>
+  <g fill="none" stroke="#58dce6" stroke-width="2">
+    <ellipse cx="32" cy="32" rx="22" ry="21"/>
+    <ellipse cx="32" cy="32" rx="15" ry="14" opacity=".65"/>
+    <path d="M32 11v42M11 32h42" opacity=".4"/>
+    <path d="M13 28h38" stroke-width="3"/>
+  </g>
+</svg>
