@@ -2,6 +2,8 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
+See the [final verification matrix](FINAL_AUDIT.md) for audited scope, evidence, and open findings.
+
 | Phase | Implementation status | Validation |
 | --- | --- | --- |
 | Project vision and pipeline architecture | Stage catalog, typed component interface, experiment context, CLI, architecture notes, and animated README assets | Unit tests cover component substitution, reference order, and notice visibility through the CLI. |
