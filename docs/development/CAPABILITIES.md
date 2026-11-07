@@ -2,13 +2,13 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
-**Available today:** the stage catalog, component protocol, run context, and CLI. The matrix below describes planned work. A research experiment earns an **Experimental** label only when it can run end to end with documented inputs, constraints, and validation results. An interface without a runnable implementation is a **Stub**. The current CLI displays stage names rather than a list of enabled features.
+**Available today:** the foundation CLI and [local MRI data engine](IMAGING.md). A research experiment earns an **Experimental** label only when it can run end to end with documented inputs, constraints, and validation results. An interface without a runnable implementation is a **Stub**. The current CLI displays stage names.
 
 | Capability | Status | Boundary and evidence required before enabling |
 | --- | --- | --- |
-| NIfTI MRI and T1, T1ce, T2, FLAIR | Planned first | Accept explicitly labeled inputs, validate dimensions, datatype, finite intensities and physical geometry, and test malformed and oversized files. Record which sequences the model requires and reject missing or duplicate required channels. |
-| Multimodal MRI | Planned | Specify channel order and reference grid in a model manifest. Test alignment and transform round trips with synthetic volumes. |
-| DICOM ingestion | Planned, privacy gated | Isolate uploads and decoding. Resolve supported series and transfer syntaxes explicitly. Review metadata, overlays, burned-in text and recognizable anatomy before releasing data downstream. |
+| NIfTI MRI and T1, T1ce, T2, FLAIR | Available locally | Bounded NIfTI-1 and NIfTI-2 decoding validates dimensions, scalar datatype, finite intensities and physical geometry. Modalities are explicit or unknown. |
+| Multimodal MRI | Manifest validation available | Check required sequences and a shared grid for each case. Model channel order and registration are planned. |
+| DICOM ingestion | Available locally, privacy gated | Load reviewed, classic uncompressed MR series from a trusted staging directory. Public uploads require a separate design and privacy review. |
 | Skull stripping, bias-field correction, normalization, resampling, registration and automatic QC | Planned | Make each operation configurable. Record transform direction, interpolation and reference grid. Test with known synthetic transforms, separate intensity and label interpolation, and block processing on failed QC. |
 | 2D, 3D and multi-class segmentation for anatomy and lesion or tumor experiments | Planned | Keep anatomy and lesion label schemas distinct. Compare a small 2D U-Net and a 3D baseline under the same subject-level split, using per-class overlap and surface metrics with documented empty-mask handling. |
 | Ensemble inference, uncertainty, calibration and explainability | Planned research experiments | Combine only predictions with compatible labels and grids. Report the uncertainty method, assess calibration on held-out subjects, and test attributions against model or input perturbations. |
