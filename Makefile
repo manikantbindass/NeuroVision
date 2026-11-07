@@ -1,8 +1,11 @@
 PYTHON ?= python
 
-.PHONY: install lint format test smoke check container
+.PHONY: install hooks lint format typecheck test smoke check container
 install:
 	$(PYTHON) -m pip install ".[dev]"
+
+hooks:
+	$(PYTHON) -m pre_commit install
 
 lint:
 	$(PYTHON) -m ruff check neurovision tests
@@ -11,13 +14,16 @@ lint:
 format:
 	$(PYTHON) -m ruff format neurovision tests
 
+typecheck:
+	$(PYTHON) -m mypy
+
 test:
 	$(PYTHON) -m unittest discover -s tests -v
 
 smoke:
 	$(PYTHON) -m neurovision
 
-check: lint test smoke
+check: lint typecheck test smoke
 	$(PYTHON) -m pip check
 
 container:

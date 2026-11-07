@@ -1,0 +1,19 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff lint
+        entry: python -m ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: Ruff formatting
+        entry: python -m ruff format --check
+        language: system
+        types: [python]
+      - id: mypy
+        name: Mypy strict type checking
+        entry: python -m mypy
+        language: system
+        pass_filenames: false
+        files: '(^neurovision/|^tests/|^pyproject\.toml$)'

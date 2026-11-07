@@ -4,6 +4,34 @@
 
 The [capability roadmap](CAPABILITIES.md) records the proposed stack and the validation required before enabling each feature.
 
+## Foundation entry points
+
+```mermaid
+flowchart LR
+    Env["Process environment"] --> Settings["Validated settings"]
+    CLI["CLI entry point"] --> Settings
+    CLI --> Catalog["Stage catalog"]
+    CLI --> Logs["JSON logs on stderr"]
+    Settings --> Context["Run context for experiments"]
+    Context --> RNG["Isolated Python random stream"]
+    Contract["Typed component contract"] --> Context
+```
+
+The CLI lists the catalog. Research callers construct the run context when executing an experiment. See the [foundation configuration](FOUNDATION.md) for the seed and logging contracts.
+
+## Planned research workflow
+
+```mermaid
+flowchart TD
+    MRI["MRI inputs"] --> Validation --> Privacy["Privacy safeguards"]
+    Privacy --> Preprocessing --> Registration --> Normalization --> QC["Quality control"]
+    QC -->|Accepted| Segmentation --> Selection["Ensemble or model selection"]
+    QC -->|Failed| Reject["Stop and record QC outcome"]
+    Selection --> Uncertainty["Uncertainty estimation"] --> Mapping["Anatomical mapping"]
+    Mapping --> Quantification --> Explainability --> Visualization["2D and 3D visualization"]
+    Visualization --> Longitudinal["Longitudinal comparison"] --> Report["Structured research report"]
+```
+
 The reference flow starts with an MRI volume and ends with a structured research report. The order below describes the workflow. Some stages also consume earlier artifacts, such as explainability consuming both the prepared image and a model prediction. Benchmarking can run multiple segmentation components against the same prepared inputs.
 
 | Stage | Planned responsibility |

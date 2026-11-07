@@ -13,7 +13,10 @@ license-files = ["LICENSE"]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["ruff==0.17.3"]
+dev = ["mypy==1.19.1", "pre-commit==4.5.1", "ruff==0.17.3"]
+
+[project.scripts]
+neurovision = "neurovision.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["neurovision", "neurovision.*"]
@@ -21,3 +24,8 @@ namespaces = false
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["neurovision", "tests"]
+strict = true
