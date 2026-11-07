@@ -30,7 +30,7 @@ Open [the local workspace](http://127.0.0.1:8080/). Read the generated `.secrets
 
 The services are `web`, `api`, `worker`, `postgres`, `redis`, and the one-shot `schema` initializer. The CLI remains available through `docker compose --profile cli run --build --rm pipeline`. The optional `monitoring` profile adds Prometheus on loopback port 9090. Worker metrics expose activity and shared queue counts without subject or artifact labels.
 
-The application containers use non-root users, read-only filesystems, temporary scratch space, dropped capabilities and resource limits. PostgreSQL keeps durable state in the named volume. Redis stores short-lived rate counters only. The Compose Redis instance is isolated on an internal development network and uses no password. Cloud connections require an access-controlled service and TLS credentials.
+The application containers use non-root users, read-only filesystems, temporary scratch space, dropped capabilities and resource limits. PostgreSQL keeps durable state in the named volume. Redis stores short-lived rate counters only. The API, worker, PostgreSQL and Redis stay on the internal research network. Only the web proxy and optional Prometheus service join the edge network and publish ports on host loopback. The Compose Redis instance uses no password. Cloud connections require an access-controlled service and TLS credentials.
 
 Use `docker compose down` to stop the stack. Database state remains in its volume. Running out of artifact quota returns an error. Remove obsolete scans and terminal jobs through their API routes to release logical quota. Database maintenance and physical disk reclamation require operator policy.
 

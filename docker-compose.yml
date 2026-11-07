@@ -95,7 +95,7 @@ services:
     tmpfs: ["/tmp:size=64m,mode=1777"]
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    networks: [research]
+    networks: [research, edge]
     depends_on:
       api: {condition: service_healthy}
     healthcheck:
@@ -108,7 +108,7 @@ services:
     profiles: [monitoring]
     image: prom/prometheus:v3.7.3
     volumes: ["./deployment/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
-    networks: [research]
+    networks: [research, edge]
     ports: ["127.0.0.1:9090:9090"]
     mem_limit: 256m
 
@@ -117,6 +117,8 @@ volumes:
 networks:
   research:
     internal: true
+  edge:
+    driver: bridge
 secrets:
   api_token: {file: ./.secrets/api_token}
   postgres_password: {file: ./.secrets/postgres_password}

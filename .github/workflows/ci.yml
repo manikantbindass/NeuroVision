@@ -127,5 +127,7 @@ jobs:
       - run: python scripts/check_compose.py
       - run: |
           docker compose exec -T api python -c 'from urllib.request import urlopen; assert b"neurovision_http_requests_total" in urlopen("http://127.0.0.1:8000/internal/metrics", timeout=5).read(); assert b"neurovision_job_executions_total" in urlopen("http://worker:9000/metrics", timeout=5).read()'
+      - if: failure()
+        run: docker compose ps --all
       - if: always()
         run: docker compose down
