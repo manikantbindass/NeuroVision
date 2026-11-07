@@ -98,7 +98,7 @@ def persist_lifecycle(
     # JSON is the authoritative complete record. The card summarizes known facts.
     card = (
         "# Research model card\n\n" + RESEARCH_NOTICE + "\n\n"
-        "**MRI benchmark status: Not yet benchmarked.**\n\n"
+        "**Benchmark pending.**\n\n"
         "## Architecture and selection\n\n"
         f"Architecture: {metadata['architecture']['architecture']}. "
         f"Selected epoch: {metadata['selected_epoch']} by validation loss.\n\n"

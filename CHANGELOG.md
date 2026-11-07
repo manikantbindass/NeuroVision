@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Standardize scientific evidence labels across documentation, model cards, reports and the research workspace.
+
 - Document the research workflow, setup across supported shells, synthetic demo, deployment, and validation boundaries in the main README.
 - Add compact repository-hosted banner animations and a synthetic workspace screenshot.
 - Explain inference, MLOps, and confidence in README diagrams and validate documentation assets in CI.

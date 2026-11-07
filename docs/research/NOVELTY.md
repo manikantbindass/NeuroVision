@@ -63,6 +63,8 @@ The names below identify NeuroVision workflows and research proposals. Their dif
 
 ## NeuroTwin — EXPERIMENTAL subject-specific research representation
 
+**Experimental.** This is an unimplemented research proposal.
+
 - **Problem addressed.** A subject's segmentation, region measurements, time points and uncertainty may live in separate outputs, making their provenance difficult to reconstruct.
 - **Mechanism.** Propose a versioned, research-only record that links an opaque subject key to time-point segmentations, regional volumes, longitudinal measurements, uncertainty and provenance. Declare units, coordinate frames and missing values. There is no dedicated NeuroTwin schema, service or interface.
 - **Related existing approaches.** BIDS Derivatives organizes processed outputs and metadata for reuse. Longitudinal FreeSurfer provides subject-level structural measurements across visits. [BIDS Derivatives](https://bids-specification.readthedocs.io/en/stable/derivatives/introduction.html) · [Reuter et al., 2012](https://pubmed.ncbi.nlm.nih.gov/22430496/)

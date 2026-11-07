@@ -2,6 +2,8 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
+**Experimental.** Atlas mapping and attribution have been tested on synthetic inputs. **Benchmark pending.**
+
 Phase 7 provides local segmentation sensitivity experiments and atlas overlap on an externally registered 3D grid. The example uses synthetic data and an analytic threshold model.
 
 ```sh

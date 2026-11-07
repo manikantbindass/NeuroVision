@@ -2,7 +2,7 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
-**Status.** The ensemble subsystem supports weighted soft voting, reversible flip test-time augmentation (TTA), and Monte Carlo dropout experiments for supported modules. Calculations are verified with synthetic probabilities. MRI performance and calibration are **Not yet benchmarked**.
+**Experimental.** The ensemble subsystem supports weighted soft voting, reversible flip test-time augmentation (TTA), and Monte Carlo dropout experiments for supported modules. Calculations are verified with synthetic probabilities. **Benchmark pending.** MRI performance and calibration have not been measured.
 
 ## Configure compatible members
 

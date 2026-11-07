@@ -50,7 +50,7 @@
 | QA and GitHub Actions | Lint, format, typing, test matrix, browser, deployment and security checks | 83 Python tests passed locally at 81% statement and branch coverage; three browser tests passed. All jobs passed on the audited commit. | [Quality gates](QUALITY.md) | PASS |
 | README and visuals | Setup for Bash, PowerShell and CMD, diagrams, local animations and synthetic screenshot | README checks passed. GitHub rendering preserved the banners and Mermaid blocks. The release sweep resolved 114 local link targets. | [README](../../README.md) | PASS |
 | Project presentation and technical report | 24-slide PowerPoint and 14-page PDF prepared locally | Both rendered and were checked against the repository and measured validation results. Repository publication is pending phase merges. | [Phase status](PHASE_STATUS.md) | PARTIAL |
-| Real MRI benchmarking | Metrics and synthetic protocols are available | Real MRI accuracy, calibration and generalization have not been measured. Split integrity also needs correction. | [Benchmarking](../../README.md#benchmarking-and-evaluation) | PARTIAL |
+| Real MRI benchmarking | Metrics and synthetic protocols are available | **Benchmark pending.** Real MRI accuracy, calibration and generalization have not been measured. Split integrity also needs correction. | [Benchmarking](../../README.md#benchmarking-and-evaluation) | PARTIAL |
 | Clinical diagnosis or treatment | Outside scope | No clinical performance or approval claimed | [Research use notice](../../README.md) | NOT APPLICABLE |
 | Integration into `main` | Reviewed as a stack of phase branches | Remote branch comparison and open PRs verified. The stack has not merged. | [Phase status](PHASE_STATUS.md) | PARTIAL |
 

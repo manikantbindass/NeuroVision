@@ -2,7 +2,7 @@
 
 > Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.
 
-**MRI benchmark status: Not yet benchmarked.** The bundled recipes train on generated ellipsoids with noise. They exercise the code, checkpointing, and reporting on CPU. Their scores describe synthetic inputs only.
+**Benchmark pending.** The bundled recipes train on generated ellipsoids with noise. They exercise the code, checkpointing, and reporting on CPU. Their scores describe synthetic inputs only.
 
 ## Run the examples
 

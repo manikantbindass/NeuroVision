@@ -30,7 +30,7 @@ flowchart LR
     Monitor -.-> Worker
 ```
 
-Start with the synthetic demo to explore slices, overlays and reports. Use the Python library to train or compare models. Real MRI performance remains unbenchmarked.
+Start with the synthetic demo to explore slices, overlays and reports. Use the Python library to train or compare models. **Benchmark pending.**
 
 ## Why NeuroVision exists
 
@@ -225,7 +225,7 @@ sequenceDiagram
   Open [the Compose workspace](http://127.0.0.1:8080). The smoke script runs synthetic inference through the frontend proxy and separate worker.
 
 - **Kubernetes and Helm** use the chart in `deployment/helm/neurovision` or the reference manifests in `deployment/kubernetes`. Configure image references, external PostgreSQL and Redis, secret mounts, TLS ingress and network policies. CPU autoscaling and a GPU worker profile are optional.
-- **AWS architecture** is optional Terraform for private EKS CPU and GPU node groups, RDS PostgreSQL, Redis and private S3. Configure an ingress controller and monitoring in the target environment. Runtime artifacts currently reside in PostgreSQL. S3 integration is a future adapter.
+- **AWS architecture** is optional Terraform for private EKS CPU and GPU node groups, RDS PostgreSQL, Redis and private S3. Configure an ingress controller and monitoring in the target environment. Runtime artifacts currently reside in PostgreSQL. **Planned.** An S3 storage adapter.
 
 [Deployment guide](docs/deployment/README.md) · [Private observability](docs/deployment/README.md#private-observability)
 
@@ -235,7 +235,9 @@ The local loader accepts scalar 3D NIfTI and a restricted subset of previously r
 
 ## Benchmarking and evaluation
 
-**MRI benchmark metrics: Not yet benchmarked.** Synthetic tests check expected behavior and provide reproducible demos. They do not estimate real MRI accuracy or establish model superiority.
+**Benchmark pending.** Synthetic tests check expected behavior and provide reproducible demos. They do not estimate real MRI accuracy or establish model superiority.
+
+[Scientific integrity and evidence requirements](docs/research/SCIENTIFIC_INTEGRITY.md)
 
 | Question | Measurements |
 | --- | --- |
@@ -280,7 +282,7 @@ The platform adds authenticated owner isolation, bounded uploads and decoding, n
 
 ## Limitations and roadmap
 
-Priorities include independent multi-site MRI benchmarks, calibration studies, scanner and subgroup robustness, managed identity and artifact storage integrations, and validation on live cloud and GPU infrastructure. Registration quality and atlas alignment need review. Longitudinal differences can reflect acquisition or pipeline variation. The 3D preview samples boundary voxels. The capability matrix distinguishes implemented paths from experimental or future work. [Phase status](docs/development/PHASE_STATUS.md) · [Capability roadmap](docs/development/CAPABILITIES.md) · [Changelog](CHANGELOG.md)
+**Planned.** Priorities include independent multi-site MRI benchmarks, calibration studies, scanner and subgroup robustness, managed identity and artifact storage integrations, and validation on live cloud and GPU infrastructure. Registration quality and atlas alignment need review. Longitudinal differences can reflect acquisition or pipeline variation. The 3D preview samples boundary voxels. The capability matrix distinguishes implemented paths from experimental or future work. [Phase status](docs/development/PHASE_STATUS.md) · [Capability roadmap](docs/development/CAPABILITIES.md) · [Changelog](CHANGELOG.md)
 
 ## Contributing, citation and license
 
