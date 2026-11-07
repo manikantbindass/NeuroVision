@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: research-data
+        name: Reject medical images in the Git index
+        entry: python scripts/check_research_data.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: ruff-check
+        name: Ruff lint
+        entry: python -m ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: Ruff formatting
+        entry: python -m ruff format --check
+        language: system
+        types: [python]
+      - id: mypy
+        name: Mypy strict type checking
+        entry: python -m mypy
+        language: system
+        pass_filenames: false
+        files: '(^neurovision/|^apps/api/|^tests/|^pyproject\.toml$)'

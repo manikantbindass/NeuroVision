@@ -1,0 +1,126 @@
+x-runtime: &runtime
+  image: neurovision-api:local
+  build:
+    context: .
+    dockerfile: deployment/docker/api.Dockerfile
+  read_only: true
+  tmpfs: ["/tmp:size=256m,mode=1777"]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  init: true
+  environment: &runtime-env
+    NEUROVISION_DATABASE_URL_FILE: /run/secrets/database_url
+  secrets: [database_url]
+  networks: [research]
+  mem_limit: 2g
+  cpus: 2
+
+services:
+  pipeline:
+    profiles: [cli]
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile
+    read_only: true
+    network_mode: none
+    environment:
+      NEUROVISION_SEED: "${NEUROVISION_SEED:-42}"
+      NEUROVISION_LOG_LEVEL: "${NEUROVISION_LOG_LEVEL:-WARNING}"
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: neurovision
+      POSTGRES_USER: neurovision
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    networks: [research]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U neurovision -d neurovision"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 1g
+  redis:
+    image: redis:7.4-alpine
+    command: [redis-server, --save, "", --appendonly, "no", --protected-mode, "no"]
+    networks: [research]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 128m
+  schema:
+    <<: *runtime
+    command: [python, -m, apps.api.deployed, init-db]
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *runtime
+    environment:
+      <<: *runtime-env
+      NEUROVISION_REDIS_URL_FILE: /run/secrets/redis_url
+      NEUROVISION_API_TOKEN_FILE: /run/secrets/api_token
+    secrets: [database_url, redis_url, api_token]
+    depends_on:
+      schema: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/ready', timeout=2)"]
+      interval: 10s
+      timeout: 4s
+      retries: 10
+  worker:
+    <<: *runtime
+    command: [python, -m, apps.api.worker]
+    environment:
+      <<: *runtime-env
+      NEUROVISION_WORKER_DEVICE: cpu
+    depends_on:
+      schema: {condition: service_completed_successfully}
+    stop_grace_period: 120s
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/ready', timeout=2)"]
+      interval: 15s
+      timeout: 4s
+      retries: 10
+  web:
+    image: neurovision-web:local
+    build:
+      context: .
+      dockerfile: deployment/docker/web.Dockerfile
+    ports: ["127.0.0.1:8080:8080"]
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [research, edge]
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    mem_limit: 128m
+  prometheus:
+    profiles: [monitoring]
+    image: prom/prometheus:v3.7.3
+    volumes: ["./deployment/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro"]
+    networks: [research, edge]
+    ports: ["127.0.0.1:9090:9090"]
+    mem_limit: 256m
+
+volumes:
+  postgres-data:
+networks:
+  research:
+    internal: true
+  edge:
+    driver: bridge
+secrets:
+  api_token: {file: ./.secrets/api_token}
+  postgres_password: {file: ./.secrets/postgres_password}
+  database_url: {file: ./.secrets/database_url}
+  redis_url: {file: ./.secrets/redis_url}

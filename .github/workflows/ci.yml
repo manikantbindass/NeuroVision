@@ -1,0 +1,133 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/check_readme.py
+
+  python:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install ".[dev,imaging,preprocessing,bias,training,zoo,api,api-test,pdf,report-test,mlops,distributed,distributed-test]"
+      - run: python -m ruff check neurovision apps tests scripts
+      - run: python -m ruff format --check neurovision apps tests scripts
+      - run: python -m mypy
+      - run: python -m pre_commit validate-config
+      - if: matrix.os == 'ubuntu-latest' && matrix.python == '3.14'
+        run: |
+          python -m pip install "coverage>=7.10,<8"
+          python -m coverage run -m unittest discover -s tests -v
+          python -m coverage report
+      - if: matrix.os != 'ubuntu-latest' || matrix.python != '3.14'
+        run: python -m unittest discover -s tests -v
+      - run: python -m neurovision.uncertainty.example --output artifacts/neuroconfidence-synthetic
+      - run: node tests/check_neuroconfidence.cjs artifacts/neuroconfidence-synthetic/neuroconfidence.html
+      - run: python -m neurovision.mapping.example --output artifacts/neuromap-synthetic/comparison.html
+      - run: python -m neurovision.longitudinal.example --output artifacts/neurotimeline-synthetic/timeline.html
+      - run: node tests/check_neurotimeline.cjs artifacts/neurotimeline-synthetic/timeline.html
+      - run: python -m neurovision.reporting.example --output artifacts/research-report-synthetic --pdf
+      - run: python -m pip check
+      - run: python -I -m neurovision
+        working-directory: ${{ runner.temp }}
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install ".[api,imaging,training,pdf]"
+      - run: npm ci
+        working-directory: apps/web
+      - run: npm run lint && npm run format:check && npm run build
+        working-directory: apps/web
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: |
+          export NEUROVISION_WEB_TEST_TOKEN="$(openssl rand -hex 32)"
+          npm test
+        working-directory: apps/web
+
+  distributed-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: neurovision_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --no-deps "torch>=2.8,<3" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install ".[api,api-test,imaging,training,distributed,distributed-test]"
+      - run: python -m unittest discover -s tests -p test_distributed.py -v
+        env:
+          NEUROVISION_TEST_DATABASE_URL: postgresql+psycopg://postgres@127.0.0.1:5432/neurovision_test
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: docker compose config --quiet
+      - run: docker compose run --build --rm pipeline
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/create_local_secrets.py
+      - run: docker compose up --build -d
+      - run: python scripts/check_compose.py
+      - run: |
+          docker compose exec -T api python -c 'from urllib.request import urlopen; assert b"neurovision_http_requests_total" in urlopen("http://127.0.0.1:8000/internal/metrics", timeout=5).read(); assert b"neurovision_job_executions_total" in urlopen("http://worker:9000/metrics", timeout=5).read()'
+      - if: failure()
+        run: docker compose ps --all
+      - if: always()
+        run: docker compose down

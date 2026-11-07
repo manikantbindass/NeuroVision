@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" role="img" aria-labelledby="title desc">
+  <title id="title">What the NeuroConfidence outputs measure</title>
+  <desc id="desc">Aligned member predictions feed a weighted mean and a separate weighted hard vote. The weighted mean produces a segmentation, confidence and entropy. Hard votes produce disagreement.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0l10 5-10 5z" fill="#137680"/>
+    </marker>
+  </defs>
+  <rect width="960" height="220" rx="14" fill="#edf7fa"/>
+  <g fill="#fff" stroke="#208993" stroke-width="1.5">
+    <rect x="30" y="78" width="217" height="64" rx="8"/>
+    <rect x="323" y="29" width="236" height="64" rx="8"/>
+    <rect x="323" y="127" width="236" height="64" rx="8"/>
+    <rect x="642" y="29" width="286" height="64" rx="8"/>
+    <rect x="642" y="127" width="286" height="64" rx="8"/>
+  </g>
+  <g stroke="#137680" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M247 109H286V61H320"/>
+    <path d="M247 111H286V159H320"/>
+    <path d="M559 61H639"/>
+    <path d="M559 159H639"/>
+  </g>
+  <g font-family="system-ui,sans-serif" text-anchor="middle" fill="#132b3c">
+    <g font-size="17" font-weight="700">
+      <text x="138" y="105">Aligned model predictions</text>
+      <text x="441" y="56">Weighted mean probability</text>
+      <text x="441" y="154">Weighted hard votes</text>
+      <text x="785" y="56">Labels, confidence and entropy</text>
+      <text x="785" y="154">Model disagreement</text>
+    </g>
+    <g font-size="13" fill="#38576a">
+      <text x="138" y="127">Common voxel grid and classes</text>
+      <text x="441" y="78">Average the class probabilities</text>
+      <text x="441" y="176">Each model picks one class</text>
+      <text x="785" y="78">Argmax, maximum and spread</text>
+      <text x="785" y="176">1 minus largest vote fraction</text>
+    </g>
+  </g>
+</svg>

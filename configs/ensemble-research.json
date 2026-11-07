@@ -1,0 +1,9 @@
+{
+  "weights": [1.0, 1.0],
+  "tta_flips": [[], [1]],
+  "mc_samples": 0,
+  "seed": 42,
+  "confidence_threshold": 0.8,
+  "entropy_threshold": 0.5,
+  "disagreement_threshold": 0.25
+}

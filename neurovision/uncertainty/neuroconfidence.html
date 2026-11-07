@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroConfidence Map — research preview</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101727;color:#edf4ff}
+body{max-width:1150px;margin:auto;padding:24px;line-height:1.5}
+h1{margin:8px 0;font-size:clamp(26px,5vw,40px)}p{color:#c2cfe1}
+.notice{border:1px solid #778dae;padding:12px;border-radius:10px}
+.badge{color:#f8c86f;font-size:14px}section{background:#172238;border-radius:12px;padding:16px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+label{display:block}input[type=range]{width:100%;accent-color:#5cd7e4}
+.views{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:20px 0}
+canvas{width:100%;background:#090f1a;image-rendering:pixelated;display:block}
+h2{font-size:17px;margin-top:0}.legend{display:flex;flex-wrap:wrap;gap:16px}
+.high{color:#5cdae2}.low{color:#ffba66}button,select{font:inherit;padding:7px;background:#263854;
+color:#fff;border:1px solid #7189ab;border-radius:6px}small{color:#b0c2db}
+#classes{display:flex;flex-wrap:wrap;gap:12px;margin:12px 0}
+@media(max-width:740px){.views{grid-template-columns:1fr}body{padding:14px}}
+</style></head><body>
+<header><span class="badge">Experimental research visualization · uncalibrated</span>
+<h1>NeuroConfidence Map</h1>
+<p class="notice" id="notice">Research and educational use only. Not a medical device and not intended for clinical diagnosis or treatment.</p>
+<p>Inspect a segmentation alongside model probability, entropy, and disagreement.
+High confidence describes the selected thresholds and does not establish correctness or clinical certainty.</p>
+</header>
+<section class="controls" aria-label="Preview controls">
+<label>Slice <output id="sliceValue"></output>
+<input id="slice" type="range" min="0" value="0" aria-label="Slice"></label>
+<label>Minimum probability <output id="confidenceValue"></output>
+<input id="confidence" type="range" min="0" max="1" step="any"></label>
+<label>Maximum normalized entropy <output id="entropyValue"></output>
+<input id="entropy" type="range" min="0" max="1" step="any"></label>
+<label>Maximum model disagreement <output id="disagreementValue"></output>
+<input id="disagreement" type="range" min="0" max="1" step="any"></label>
+<label>Background label visibility
+<select id="background"><option value="hide">Hide label 0</option>
+<option value="show">Show label 0</option></select></label>
+<div><button id="reset" type="button">Reset thresholds</button></div>
+</section>
+<div class="views">
+<section><h2>MRI intensity preview</h2><canvas id="mri" aria-label="MRI slice"></canvas></section>
+<section><h2>Segmentation prediction</h2><canvas id="segmentation" aria-label="Predicted labels"></canvas></section>
+<section><h2>NeuroConfidence overlay</h2><canvas id="neuroconfidence" aria-label="Confidence classes"></canvas></section>
+</div>
+<div class="legend"><span class="high">● High-confidence prediction</span>
+<span class="low">● Low-confidence / uncertain prediction</span></div>
+<div id="classes" aria-label="Segmentation class legend"></div>
+<p id="summary" role="status"></p>
+<small>Preview voxels are sampled from the original tensor grid. Slice axes follow tensor order.
+Verify physical orientation and full-resolution results in the imaging workflow.
+This HTML embeds image pixels. Store and share it under your research data policy.</small>
+<p id="experiment"></p>
+<script id="data" type="application/json">__PAYLOAD__</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('data').textContent);
+const byId=id=>document.getElementById(id);
+const [depth,height,width]=data.shape;
+const bytes=value=>Uint8Array.from(atob(value),ch=>ch.charCodeAt(0));
+function floats(value){
+  const raw=bytes(value), view=new DataView(raw.buffer);
+  return Array.from({length:raw.length/4},(_,i)=>view.getFloat32(i*4,true));
+}
+const gray=bytes(data.image), labels=bytes(data.labels), confidence=floats(data.confidence),
+entropy=floats(data.entropy), disagreement=floats(data.disagreement);
+const canvases=['mri','segmentation','neuroconfidence'].map(byId);
+for(const canvas of canvases){canvas.width=width;canvas.height=height;}
+byId('notice').textContent=data.notice;
+byId('slice').max=depth-1;
+byId('slice').value=Math.floor(depth/2);
+function color(label){
+  const hue=(label*137.508)%360, c=0.8, x=c*(1-Math.abs((hue/60)%2-1)), m=0.15;
+  const triplets=[[c,x,0],[x,c,0],[0,c,x],[0,x,c],[x,0,c],[c,0,x]];
+  return triplets[Math.floor(hue/60)].map(v=>Math.round((v+m)*255));
+}
+const colors=data.classNames.map((name,index)=>color(index));
+data.classNames.forEach((name,index)=>{
+  const item=document.createElement('span');
+  item.textContent=index+' · '+name;
+  item.style.color='rgb('+colors[index].join(',')+')';
+  byId('classes').append(item);
+});
+function reset(){
+  for(const key of ['confidence','entropy','disagreement']){
+    byId(key).value=data.thresholds[key];
+  }
+  render();
+}
+function render(){
+  const slice=Number(byId('slice').value), start=slice*height*width, hide=byId('background').value==='hide';
+  const thresholds={};
+  for(const key of ['confidence','entropy','disagreement']){
+    thresholds[key]=Math.fround(Number(byId(key).value));
+    byId(key+'Value').textContent=thresholds[key].toFixed(2);
+  }
+  byId('sliceValue').textContent=data.sliceIndices[slice];
+  const contexts=canvases.map(canvas=>canvas.getContext('2d'));
+  const frames=contexts.map(ctx=>ctx.createImageData(width,height));
+  let high=0, uncertain=0;
+  for(let p=0;p<height*width;p++){
+    const i=start+p, label=labels[i], g=gray[i], visible=!hide||label!==0;
+    const confident=confidence[i]>=thresholds.confidence&&entropy[i]<=thresholds.entropy
+      &&disagreement[i]<=thresholds.disagreement;
+    if(visible){if(confident)high++;else uncertain++;}
+    const overlay=confident?[92,218,226]:[255,186,102];
+    for(let channel=0;channel<3;channel++){
+      frames[0].data[p*4+channel]=g;
+      frames[1].data[p*4+channel]=visible?0.4*g+0.6*colors[label][channel]:g;
+      frames[2].data[p*4+channel]=visible?0.35*g+0.65*overlay[channel]:g;
+    }
+    for(const frame of frames)frame.data[p*4+3]=255;
+  }
+  contexts.forEach((ctx,index)=>ctx.putImageData(frames[index],0,0));
+  byId('summary').textContent=high+' displayed voxels meet the high-confidence thresholds; '
+    +uncertain+' are low-confidence / uncertain.';
+}
+for(const key of ['slice','confidence','entropy','disagreement','background']){
+  byId(key).addEventListener('input',render);
+}
+byId('reset').addEventListener('click',reset);
+byId('experiment').textContent='Seed '+data.experiment.seed+' · MC samples per transform '
+  +data.experiment.mc_samples+' · TTA transforms '+data.experiment.tta_count
+  +' · normalized weights '+data.experiment.weights.map(v=>v.toFixed(3)).join(', ');
+reset();
+</script></body></html>
