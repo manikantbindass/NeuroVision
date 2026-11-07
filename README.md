@@ -86,6 +86,8 @@ The factory, registry, checkpoint manager and tensor inference engine share expl
 
 [Ensembles and uncertainty](docs/research/ENSEMBLE_INTELLIGENCE.md) · [Atlas mapping and attribution](docs/research/NEUROMAP.md) · [Longitudinal comparison](docs/research/NEUROTIMELINE.md) · [Report fields and exports](docs/research/REPORTING.md)
 
+The [research novelty register](docs/research/NOVELTY.md) compares these concepts with prior work and records hypotheses, validation plans and current evidence.
+
 <img src="assets/diagrams/neuroconfidence.svg" width="900" alt="Aligned model probabilities feed a weighted mean, from which NeuroConfidence derives the segmentation, maximum confidence and entropy. Member predictions also provide disagreement.">
 
 Confidence and entropy describe the combined probabilities. Disagreement describes how members vote. A confident or unanimous result can still be wrong.
